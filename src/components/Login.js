@@ -30,6 +30,7 @@ export default class Login extends React.Component{
            password: "",
            errors: []
        }
+       this.role="";
        this.onChange = this.onChange.bind(this)
        this.submitLogin = this.submitLogin.bind(this)
 
@@ -74,24 +75,25 @@ export default class Login extends React.Component{
     
 
     checkUser(e){
-        if(e.target.id ==  "Student"){
-        console.log("student")
-        this.state.isStudent = true;
-        this.state.isGuide = false;
-        this.state.isAdmin = false;
-        } 
-        else if(e.target.id ==  "Guide"){
-        console.log("Guide")
-        this.state.isStudent = false;
-        this.state.isGuide = true;
-        this.state.isAdmin = false;
-        }
-        else{
-        console.log("Admin")
-        this.state.isStudent = false;
-        this.state.isGuide = false;
-        this.state.isAdmin = true;
-        }
+        this.role=e.target.id;
+        // if(e.target.id ==  "Student"){
+        // console.log("student")
+        // // this.state.isStudent = true;
+        // // this.state.isGuide = false;
+        // // this.state.isAdmin = false;
+        // } 
+        // else if(e.target.id ==  "Guide"){
+        // console.log("Guide")
+        // this.state.isStudent = false;
+        // this.state.isGuide = true;
+        // this.state.isAdmin = false;
+        // }
+        // else{
+        // console.log("Admin")
+        // this.state.isStudent = false;
+        // this.state.isGuide = false;
+        // this.state.isAdmin = true;
+        // }
     }
 
     
@@ -119,32 +121,29 @@ export default class Login extends React.Component{
                 loggedIn: !prevState.loggedIn
             }));
         }
-        if(this.state.isGuide){
+        if(this.role==="Guide"){
             localStorage.setItem("token","guide")
-            this.setState((prevState, props) =>({
-            loggedIn: !prevState.loggedIn
-            }));
+            this.setState({loggedIn:true})//TODO check if logged in
         }
-        if(this.state.isStudent){
+        if(this.role==="Student"){
             (async ()=> {
-                alert("try");
                 const response = await axios.post(
                     '/studentExist',
                     { username: this.state.username, password: this.state.password, type: 'student' },
                     { headers: { 'Content-Type': 'application/json' } }
                   )
-                  console.log(response.data)
+                  console.log("res" ,response.data)
+                  
+                  localStorage.setItem("token","student")
+                      this.setState((prevState, props) =>({
+                      loggedIn: !prevState.loggedIn //is he really logged in?
+                      }))
             })();
-            
-            localStorage.setItem("token","student")
-                this.setState((prevState, props) =>({
-                loggedIn: !prevState.loggedIn
-                }))
         }
     }
     render(){
         const isLoggedIn = this.state.loggedIn
-        if(this.state.loggedIn && this.state.isStudent){
+        if(this.state.loggedIn && this.role==="Student"){
             return <Redirect to="/btnStudent"/>
         }
         if(this.state.loggedIn && this.state.isAdmin){

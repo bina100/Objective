@@ -15,7 +15,12 @@ export default class BtnStudent extends React.Component{
             loggedIn: loggedIn
         }
         localStorage.setItem("token", null)
+        window.onbeforeunload=function(){
+            localStorage.setItem("token", "student")
+        }
     }
+
+
     render(){
         if(this.state.loggedIn === false){
             return <Redirect to="/"/>
