@@ -9,20 +9,17 @@ export default class Login extends React.Component{
 
    constructor(props){
         super(props)
-        const token = localStorage.getItem("token")
-        let loggedIn = true
-        if(token == "null"){
-            loggedIn = false
-        }
+        // const token = localStorage.getItem("token")
+        //this.loggedIn = null
 
        this.state = {
+           loggedIn: false,
            username: '',
            password: '',
-           loggedIn: loggedIn,
            isLoginOpen: true,
-           isStudent: false,
-           isGuide: false,
-           isAdmin: false,
+        //    isStudent: false,
+        //    isGuide: false,
+        //    isAdmin: false,
            redirectStudent: false,
            redirectGuide: false,
            redirectAdmin: false,
@@ -76,24 +73,7 @@ export default class Login extends React.Component{
 
     checkUser(e){
         this.role=e.target.id;
-        // if(e.target.id ==  "Student"){
-        // console.log("student")
-        // // this.state.isStudent = true;
-        // // this.state.isGuide = false;
-        // // this.state.isAdmin = false;
-        // } 
-        // else if(e.target.id ==  "Guide"){
-        // console.log("Guide")
-        // this.state.isStudent = false;
-        // this.state.isGuide = true;
-        // this.state.isAdmin = false;
-        // }
-        // else{
-        // console.log("Admin")
-        // this.state.isStudent = false;
-        // this.state.isGuide = false;
-        // this.state.isAdmin = true;
-        // }
+        console.log("role: ", this.role)
     }
 
     
@@ -111,48 +91,51 @@ export default class Login extends React.Component{
         if (this.state.password == "") {
             this.showValidationErr("password", "Password Cannot be empty!");
         }
-       const {username, password} = this.state
-       //this.state.loggedIn = true;
-        console.log("hello"+ this.state.loggedIn);
-        if(this.state.isAdmin){
-            //send POST request to check in Admin table
-            localStorage.setItem("token","admin")
-            this.setState((prevState, props) =>({
-                loggedIn: !prevState.loggedIn
-            }));
-        }
-        if(this.role==="Guide"){
-            localStorage.setItem("token","guide")
-            this.setState({loggedIn:true})//TODO check if logged in
-        }
-        if(this.role==="Student"){
-            (async ()=> {
-                const response = await axios.post(
-                    '/studentExist',
-                    { username: this.state.username, password: this.state.password, type: 'student' },
-                    { headers: { 'Content-Type': 'application/json' } }
-                  )
-                  console.log("res" ,response.data)
-                  
-                  localStorage.setItem("token","student")
-                      this.setState((prevState, props) =>({
-                      loggedIn: !prevState.loggedIn //is he really logged in?
-                      }))
-            })();
-        }
+        (async ()=> {
+            const response = await axios.post(
+                '/userExist',
+                { username: this.state.username, password: this.state.password, type: this.role },
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              console.log("res" ,response.data)
+              if(response.data === 'Success'){
+                this.setState({loggedIn: true})
+              }
+              else if(response.data ==='Failed'){
+                this.setState({loggedIn: false})
+                alert("Please make sure to click the corect button, and that you typed in the corect username and password ")
+              }
+              else if(response.data === 'no_type')
+                alert("please click on a button that matches user role")
+             console.log("logged in: ", this.state.loggedIn)
+              
+            //   localStorage.setItem("token","student")
+            //       this.setState((prevState, props) =>({
+            //       loggedIn: !prevState.loggedIn //is he really logged in?
+            //       }))
+        })();
     }
+
     render(){
-        const isLoggedIn = this.state.loggedIn
         if(this.state.loggedIn && this.role==="Student"){
-            return <Redirect to="/btnStudent"/>
+            return <Redirect to={{
+                pathname: '/btnStudent',
+                state: { id: this.state.password, username: this.state.username }
+            }}/>
+            
         }
-        if(this.state.loggedIn && this.state.isAdmin){
-            return <Redirect to="/btnAdmin"/>
+        if(this.state.loggedIn && this.role === 'Admin'){
+            return <Redirect to={{
+                pathname: "/btnAdmin",
+                state: {id: this.state.password, username: this.state.username}
+            }}/>
         }
-        if(this.state.loggedIn && this.state.isGuide){
-            return <Redirect to="/btnGuide"/>
+        if(this.state.loggedIn && this.role === 'Guide'){
+            return <Redirect to={{
+                pathname: "/btnGuide",
+                state: {id: this.state.password, username: this.state.username}
+            }}/>
         }
-        console.log("hello2"+isLoggedIn);
         //NULL by default (help us check when rendering)
         let usernameErr = null, passwordErr = null, emailErr = null;
         //Loop and find which ones has the error

@@ -45,23 +45,75 @@ app.get('/abc', (req, res)=>{
     // })
 });
 
-// app.post('/check_user_existence', (req, res)=>{
-//     console.log("trying to check user existance")
-//     res.end()
-// })
-
-app.post('/studentExist', function(req, res) {
-    console.log("hello server...");
+app.post('/userExist', function(req, res) {
     // Get sent data.
     var user = req.body;
+    //define user type
+    var user_type; //definning user type in order to know what table to check existance
+    if(user.type === 'Student')
+      user_type = 'students'
+    else if(user.type === 'Guide')
+      user_type = 'guides'
+    else if((user.type === 'Admin'))
+      user_type = 'admin'
+    if(user_type === undefined){
+      console.log("userExist - no type")
+      res.end("no_type")
+      return
+    }
+      console.log("username: ", user.username, " pwd: ", user.password, " type: ", user.type)
     // Do a MySQL query.
-    var query = db.query(`SELECT username, password FROM students WHERE username = '${user.username}' and password = '${user.password}'`, function(err, result) {
+    var sql = 'SELECT username, password FROM ' + user_type + ' WHERE username = "'+user.username+'" and password = "'+user.password+'"'
+    console.log("QUERY: ", sql)
+    var query = db.query(sql, function(err, result) {
       // check result
-      console.log("RESULT IS ",result,err);
-      res.end('Success');
+      console.log("result-studentExist: ",result)
+//?????result
+      if(result.length === 0){//if student doesn't exist in the system
+        console.log("studentExist- failed..")
+        res.end('Failed');
+      }
+      else{
+        console.log("RESULT IS -studentExist",result,err);
+        console.log("studentExist - success....")
+        res.end('Success');
+
+      }
     });
     console.log("hello ..."+ query);
   });
+  //-----------------------------------------------------
+  app.post('/return_user_name', function(req, res) {
+    console.log("hello return_user_name")
+    // Get sent data.
+    var user = req.body
+    var user_type = user.type
+    if(user_type === undefined){
+      console.log("return_user_name - no type")
+      res.end("no_type")
+    }
+    console.log("username: ", user.username, " pwd: ", user.password, " type: "+ user.type)
+    // Do a MySQL query.
+    var sql = 'SELECT FirstName, LastName FROM ' + user_type + ' WHERE username = "'+user.username+'" and password = "'+user.password+'"'
+    console.log("QUERY: ", sql)
+    // Do a MySQL query.
+    var query = db.query(sql, function(err, result) {
+      // check result
+      //console.log("result-return_user_name: ",result)
+//?????result
+      if(result.length === 0){//if student doesn't exist in the system
+        console.log("return_user_name - failed..")
+        res.end('Failed');
+      }
+      else{
+        console.log("RESULT IS - return_user_name ",result,err);
+        console.log("return_user_name - success....")
+        res.send(result[0]);//result comes as an array
+
+      }
+    });
+  });
+
   
 
 app.listen('5000', ()=>{
