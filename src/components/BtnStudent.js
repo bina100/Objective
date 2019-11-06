@@ -16,7 +16,7 @@ export default class BtnStudent extends React.Component{
         // if(token != "student"){
         //     loggedIn = false
         // }
-        this.state = {  
+        this.state = {
             loggedIn: loggedIn,
             fetched: false
         }
@@ -24,6 +24,8 @@ export default class BtnStudent extends React.Component{
         // window.onbeforeunload=function(){
         //     localStorage.setItem("token", "student")
         // }
+        this.showCourses = this.showCourses.bind(this)
+
     }
     get_user_details(){
         (async ()=> {
@@ -35,6 +37,25 @@ export default class BtnStudent extends React.Component{
               this.state.user_fname = response.data.FirstName
               this.state.user_lname = response.data.LastName
               this.setState({fetched: true})
+        })();
+    }
+
+    showCourses(){
+        (async ()=> {
+            const response = await axios.post(
+                '/return_course_data_per_student',
+                { password: this.user.password},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              console.log("courses: ", response.data)
+              var coursesArr = []
+              for (var i = 0; i < response.data.length; i++){
+                    console.log("course ", i, ": ", response.data[i].Active_Course_code)
+                    coursesArr.push(response.data[i].Active_Course_code)
+                    //console.log("local arr: ", coursesArr)
+              }
+              this.setState({courses: coursesArr})
+              console.log("state arr: ",this.state.courses)
         })();
     }
 
@@ -52,6 +73,9 @@ export default class BtnStudent extends React.Component{
             <div>
                 <h1>Welcome {this.state.user_fname} {this.state.user_lname}</h1>
                 <Link to="/">sign out</Link>
+                <button onClick = {this.showCourses.bind(this)}>course</button>
+                <p/>
+                <div>{JSON.stringify(this.state.courses)}</div>
             </div>
         )
     }

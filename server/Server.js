@@ -114,6 +114,55 @@ app.post('/userExist', function(req, res) {
     });
   });
 
+  //-------------------------------------------------------------
+  app.post('/return_course_data_per_student', function(req, res) {
+    console.log("hello return_course_data_per_student")
+    // Get sent data.
+    var user = req.body
+    // Do a MySQL query.
+    var active_course_code = 'select distinct Active_Course_code from lab_meeting where StudentCode = '+ user.password
+    // Do a MySQL query.
+    var query = db.query(active_course_code, function(err, result1) {
+      // check result
+      console.log("result1: ",result1)
+
+      if(result1.length === 0){//if student doesn't exist in the system
+        console.log("return active code course - failed..")
+        res.end('Failed');
+      }
+      else{
+        for(var i = 0; i < result1.length; i++){
+          var code_course = 'select CourseCode from active_course where Active_Course_code = ' + result1[i].Active_Course_code;
+          // Do a MySQL query.
+          var query_course_code = db.query(code_course, function(err, result2) {
+          console.log("RESULT 2 IS - return code course ",result2,err);
+          if(result2.length === 0){//if student doesn't exist in the system
+            console.log("return_code course - failed..")
+            res.end('Failed');
+          }
+          else{
+            var course_name_arr = []
+            var course_name = 'select CourseName from courses where Course_code = ' + result2[0].CourseCode;
+            var query_course_code = db.query(course_name, function(err, result3) {
+              console.log("RESULT IS 3 - return_course name ",result3,err);
+              if(result3.length === 0){//if student doesn't exist in the system
+                console.log("return_= course name - failed..")
+                res.end('Failed');
+              }
+              else{
+                console.log("name: ", result3[0].CourseName)
+                course_name_arr.push(result3[0].CourseName)
+              }
+            });
+          console.log("course_name_arr: ", course_name_arr.toString())
+            //res.end(course_name_arr)
+          }
+        });
+      }
+      }
+    });
+  });
+
   
 
 app.listen('5000', ()=>{
