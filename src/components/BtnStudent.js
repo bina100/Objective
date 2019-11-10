@@ -47,15 +47,12 @@ export default class BtnStudent extends React.Component{
                 { password: this.user.password},
                 { headers: { 'Content-Type': 'application/json' } }
               )
-              console.log("courses: ", response.data)
-              var coursesArr = []
-              for (var i = 0; i < response.data.length; i++){
-                    console.log("course ", i, ": ", response.data[i].Active_Course_code)
-                    coursesArr.push(response.data[i].Active_Course_code)
-                    //console.log("local arr: ", coursesArr)
-              }
-              this.setState({courses: coursesArr})
-              console.log("state arr: ",this.state.courses)
+              if(response.data === 'Failed')
+                alert("student not signed to any course")
+            else{
+                var coursesArr = response.data.split(",")// storing couses names in array
+                this.setState({courses: coursesArr})
+            }
         })();
     }
 
@@ -68,14 +65,20 @@ export default class BtnStudent extends React.Component{
 
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
+        var coursesList = null
+        if(this.state.courses){
+            coursesList = this.state.courses.map((course, index) => {
+            return(<div key={index}><button>{course}</button></div>)
+            })
+        }
 
         return(
             <div>
                 <h1>Welcome {this.state.user_fname} {this.state.user_lname}</h1>
-                <Link to="/">sign out</Link>
+                <Link to="/">sign out</Link><p/>
                 <button onClick = {this.showCourses.bind(this)}>course</button>
                 <p/>
-                <div>{JSON.stringify(this.state.courses)}</div>
+                <div>{coursesList}</div>
             </div>
         )
     }

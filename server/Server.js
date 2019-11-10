@@ -68,7 +68,7 @@ app.post('/userExist', function(req, res) {
     var query = db.query(sql, function(err, result) {
       // check result
       console.log("result-studentExist: ",result)
-//?????result
+
       if(result.length === 0){//if student doesn't exist in the system
         console.log("studentExist- failed..")
         res.end('Failed');
@@ -100,7 +100,7 @@ app.post('/userExist', function(req, res) {
     var query = db.query(sql, function(err, result) {
       // check result
       //console.log("result-return_user_name: ",result)
-//?????result
+
       if(result.length === 0){//if student doesn't exist in the system
         console.log("return_user_name - failed..")
         res.end('Failed');
@@ -117,6 +117,8 @@ app.post('/userExist', function(req, res) {
   //-------------------------------------------------------------
   app.post('/return_course_data_per_student', function(req, res) {
     console.log("hello return_course_data_per_student")
+    var course_name_arr = []
+    var count_course // in order to send a response only after getting all queries results
     // Get sent data.
     var user = req.body
     // Do a MySQL query.
@@ -125,8 +127,8 @@ app.post('/userExist', function(req, res) {
     var query = db.query(active_course_code, function(err, result1) {
       // check result
       console.log("result1: ",result1)
-
-      if(result1.length === 0){//if student doesn't exist in the system
+      count_course = result1.length
+      if(result1.length === 0){//if student isnt signed up to any courses
         console.log("return active code course - failed..")
         res.end('Failed');
       }
@@ -135,30 +137,29 @@ app.post('/userExist', function(req, res) {
           var code_course = 'select CourseCode from active_course where Active_Course_code = ' + result1[i].Active_Course_code;
           // Do a MySQL query.
           var query_course_code = db.query(code_course, function(err, result2) {
-          console.log("RESULT 2 IS - return code course ",result2,err);
-          if(result2.length === 0){//if student doesn't exist in the system
-            console.log("return_code course - failed..")
-            res.end('Failed');
-          }
-          else{
-            var course_name_arr = []
-            var course_name = 'select CourseName from courses where Course_code = ' + result2[0].CourseCode;
-            var query_course_code = db.query(course_name, function(err, result3) {
-              console.log("RESULT IS 3 - return_course name ",result3,err);
-              if(result3.length === 0){//if student doesn't exist in the system
-                console.log("return_= course name - failed..")
-                res.end('Failed');
-              }
-              else{
-                console.log("name: ", result3[0].CourseName)
-                course_name_arr.push(result3[0].CourseName)
-              }
-            });
-          console.log("course_name_arr: ", course_name_arr.toString())
-            //res.end(course_name_arr)
-          }
-        });
-      }
+            console.log("RESULT 2 IS - return code course ",result2,err);
+            if(result2.length === 0){//if query failed
+              console.log("return_code course - failed..")
+              res.end('Failed');
+            }
+            else{
+              var course_name = 'select CourseName from courses where Course_code = ' + result2[0].CourseCode;
+              var query_course_code = db.query(course_name, function(err, result3) {
+                console.log("RESULT 3 IS - return_course name ",result3,err);
+                if(result3.length === 0){//if query failed
+                  console.log("return_= course name - failed..")
+                  res.end('Failed');
+                }
+                else{
+                  course_name_arr.push(result3[0].CourseName)//adding course to aourses array
+                  count_course -- //counting how many results have returned
+                  if(count_course === 0)// if all data was returned
+                    res.end(course_name_arr.toString())// returning string of studet's courses to client
+                }
+              });
+            }
+          });
+        }  
       }
     });
   });
