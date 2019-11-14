@@ -49,7 +49,7 @@ export default class BtnStudent extends React.Component{
               )
               if(response.data === 'Failed')
                 alert("student not signed to any course")
-            else{
+              else{
                 var coursesArr = response.data.split(",")// storing couses names in array
                 this.setState({courses: coursesArr})
             }

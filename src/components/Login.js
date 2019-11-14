@@ -108,11 +108,7 @@ export default class Login extends React.Component{
               else if(response.data === 'no_type')
                 alert("please click on a button that matches user role")
              console.log("logged in: ", this.state.loggedIn)
-              
-            //   localStorage.setItem("token","student")
-            //       this.setState((prevState, props) =>({
-            //       loggedIn: !prevState.loggedIn //is he really logged in?
-            //       }))
+
         })();
     }
 
@@ -219,23 +215,6 @@ export default class Login extends React.Component{
             
 
         );
-        //{this.state.isLoginOpen && <LoginBox/>}
-        }
-        }
+    }
+}
 
-            /*       <div>
-                        <h1>Login</h1>
-                        <form onSubmit={this.submitFrom}>
-                            <input type="text" placeholder="username" name="username" value={this.state.username} onChange={this.onChange}/>
-                            <br/>
-                            <input type="text" placeholder="password" name="password" value={this.state.password} onChange={this.onChange}/>
-                            <br/>
-                            { <input type="submit"/> }
-                            <button onClick={this.submitFrom} >submit</button>
-                    /*  </form>
-
-                    </div>
-                )
-            }
-        }*/
-        //export default Login;

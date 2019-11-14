@@ -164,6 +164,31 @@ app.post('/userExist', function(req, res) {
     });
   });
 
+  //-------------------------------------------------------------
+  app.post('/push_qustionnaire_to_db', function(req, res) {
+    // Get sent data.
+    var questions = req.body.questions//object type in format {0: "question1", 1: question2", ...}
+    var CourseName = req.body.CourseName
+    console.log("questions: ", questions)
+    console.log("course name: ", CourseName)
+
+    for(i=0;i<Object.keys(questions).length;i++){//running over every property in object
+      var sql = "INSERT INTO questions(QuestionNum, Question, Questionnaire_code) values("+(i+1)+",'"+questions[i]+ "', (select Questionnaire_code from Questionnaires where Course_code = (select Course_code from courses where CourseName = '"+CourseName+"')));"
+      var query = db.query(sql, function(err, result) {
+        // check result  
+        if(result === undefined){//if something went wrong while inserting
+          console.log("push_qustionnaire_to_db- failed..")
+          res.end('Failed');
+        }
+        else{
+          console.log("push_qustionnaire_to_db - success....")
+          res.end('Success');
+  
+        }
+      });
+    } 
+  });
+
   
 
 app.listen('5000', ()=>{

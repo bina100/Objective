@@ -28,8 +28,28 @@ export default class BtnAdmin extends React.Component{
     fileChanged=(e)=>{
         console.log(e.target)
         readXlsxFile(e.target.files[0]).then(rows=>{
-            console.log("rows",rows);
+            var only_questions = {}
+            for(var i=0;i<rows.length-1;i++)
+                if(i%2 !==0)//skiping on comment rows
+                    only_questions[Math.floor(i/2)] = rows[i][0].substring(2,rows[i][0].length)//adding property to object in format:{i:"question"}
+            
+            
+            this.setState({questions: only_questions})
+            console.log("state questions_arr",this.state.questions);
+            (async ()=> {
+                const response = await axios.post(
+                    '/push_qustionnaire_to_db',
+                    { questions: this.state.questions, CourseName: 'biology'},
+                    { headers: { 'Content-Type': 'application/json' } }
+                  )
+                  if(response.data === 'Failed')
+                    alert("error saving questionnaire")
+                  else
+                    alert("questionnaire inserted")
+            })();
+
         })
+        
     }
 
     get_admin_details(){
@@ -53,6 +73,13 @@ export default class BtnAdmin extends React.Component{
 
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
+        
+        if(this.state.questions){
+            var questions_arr =[]
+            for(var i=0;i<Object.keys(this.state.questions).length;i++)//running over every property in object
+                questions_arr.push(<div key={i}>{this.state.questions[i]}<p/></div>)
+
+        }
 
         return(
             <div>
@@ -61,6 +88,7 @@ export default class BtnAdmin extends React.Component{
                 <p/>
                 Add excel file of students names and tzs.
                 <input type="file" accept=".xlsx" onChange={this.fileChanged}/>
+                <div>{questions_arr}</div>
             </div>
         )
     }
