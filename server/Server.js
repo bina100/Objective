@@ -7,8 +7,6 @@ const app = express();
 
 app.use(bodyParser.json({extended: false}))
 
-//app.use(express.static('./src/Login.js'))
-
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -27,7 +25,7 @@ db.connect((err)=>{
 
 
 
-
+var student_id = ''
 
 app.get('/abc', (req, res)=>{
     console.log("hello");
@@ -56,6 +54,8 @@ app.post('/userExist', function(req, res) {
       user_type = 'guides'
     else if((user.type === 'Admin'))
       user_type = 'admin'
+    else if((user.type === 'Director'))
+      user_type = 'director'
     if(user_type === undefined){
       console.log("userExist - no type")
       res.end("no_type")
@@ -74,6 +74,8 @@ app.post('/userExist', function(req, res) {
         res.end('Failed');
       }
       else{
+        student_id = result[0].password
+        console.log("pwd: ", student_id)
         console.log("RESULT IS -studentExist",result,err);
         console.log("studentExist - success....")
         res.end('Success');
@@ -189,7 +191,74 @@ app.post('/userExist', function(req, res) {
     } 
   });
 
+    //-------------------------------------------------------------
+    app.post('/return_course_qustionnaire', function(req, res) {
+      // Get sent data.
+      var CourseName = req.body.CourseName
+      console.log("course name: ", CourseName)
+      
+      var sql = "SELECT Question, QuestionNum from questions where Questionnaire_code = (SELECT Questionnaire_code from questionnaires where Course_code = (SELECT Course_code FROM Courses where CourseName = '"+CourseName+"'));"
+      var query = db.query(sql, function(err, result) {
+        // check result  
+        if(result === undefined){//if something went wrong while inserting
+          console.log("return_course_qustionnaire- failed..")
+          res.end('Failed');
+        }
+        else{
+          console.log("return_course_qustionnaire - success....")
+          res.end(JSON.stringify(result));
   
+        }
+      });
+    });
+
+  //-------------------------------------------------------------
+  app.post('/return_all_courses', function(req, res) {
+    var sql = "SELECT * from courses;"
+    var query = db.query(sql, function(err, result) {
+      // check result  
+      if(result === undefined){//if something went wrong while fetching
+        console.log("return_course_qustionnaire- failed..")
+        res.end('Failed');
+      }
+      else{
+        console.log("return_course_qustionnaire - success....")
+        console.log("return_all_courses- result: ", result)
+        res.end(JSON.stringify(result));
+      }
+    });
+  });
+  
+  //-------------------------------------------------------------
+  app.post('/push_filled_qustionnaire_to_db', function(req, res) {
+    // Get sent data.
+    console.log("student id: ", student_id)
+    var comments = req.body.comments//object type in format {0: "question1", 1: question2", ...}
+    var answers = req.body.answers
+    var CourseName = req.body.CourseName
+    console.log("comments: ", comments)
+    console.log("answers: ", answers)
+
+    for(i=1;i<=Object.keys(answers).length;i++){//running over every property in object
+      if(!comments[i])
+        comments[i]=""
+      console.log("student id: ", student_id)
+      var sql = "INSERT INTO student_questionnaire(Questionnaire_code, StudentCode, QuestionNum, AnswerNum, LabNum, comment) values((SELECT Questionnaire_code from questionnaires where Course_code = (SELECT Course_code FROM Courses where CourseName = '"+CourseName+"')), '"+student_id+"', "+i+", "+answers[i]+", 1, '"+comments[i]+"');"
+      console.log("sql: ", sql)
+      var query = db.query(sql, function(err, result) {
+        // check result  
+        if(result === undefined){//if something went wrong while inserting
+          console.log("push_filled_qustionnaire_to_db- failed..")
+          res.end('Failed');
+        }
+        else{
+          console.log("push_filled_qustionnaire_to_db - success....")
+          res.end('Success');
+  
+        }
+      });
+    } 
+  });
 
 app.listen('5000', ()=>{
     console.log('app running on port 5000')

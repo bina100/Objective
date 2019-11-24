@@ -5,10 +5,7 @@ import Login from './components/Login'
 import BtnStudent from './components/BtnStudent';
 import BtnGuide from './components/BtnGuide';
 import BtnAdmin from './components/BtnAdmin';
-
-//import {Redirect} from "./components/Redirect";
-
-
+import BtnDirector from './components/BtnDirector';
 
 //TODO's:
 /*
@@ -33,7 +30,7 @@ class App extends React.Component{
                     <Route  path="/btnStudent" component={BtnStudent}/>
                     <Route  path="/btnGuide" component={BtnGuide}/>
                     <Route  path="/btnAdmin" component={BtnAdmin}/>
-
+                    <Route  path="/btnDirector" component={BtnDirector}/>
                 </Switch>
           
           

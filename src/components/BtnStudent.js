@@ -2,6 +2,8 @@ import React, {Component} from "react"
 import {Router} from "react-router-dom";
 import {Link, Redirect} from "react-router-dom";
 import axios from "axios";
+import { async } from "q";
+import Questionnaire from './Questionnaire';
 
 export default class BtnStudent extends React.Component{
     constructor(props){
@@ -18,13 +20,16 @@ export default class BtnStudent extends React.Component{
         // }
         this.state = {
             loggedIn: loggedIn,
-            fetched: false
+            fetched: false,
+            questions:null
         }
         // localStorage.setItem("token", null)
         // window.onbeforeunload=function(){
         //     localStorage.setItem("token", "student")
         // }
-        this.showCourses = this.showCourses.bind(this)
+        this.showCourses()
+        this.showQuestionnaire = this.showQuestionnaire.bind(this)
+        // this.handleAnswerChange = this.handleAnswerChange.bind(this)        
 
     }
     get_user_details(){
@@ -56,7 +61,10 @@ export default class BtnStudent extends React.Component{
         })();
     }
 
-
+    showQuestionnaire(e){//shows the questionnaire for chosen course on screen
+        console.log("show", e.target.value, " questionnaire")
+        this.setState({questions:<Questionnaire courseName={e.target.value}></Questionnaire>})
+    }
 
     render(){
         if(this.state.loggedIn === false){
@@ -68,7 +76,7 @@ export default class BtnStudent extends React.Component{
         var coursesList = null
         if(this.state.courses){
             coursesList = this.state.courses.map((course, index) => {
-            return(<div key={index}><button>{course}</button></div>)
+            return(<div key={index}><button value={course} onClick={this.showQuestionnaire.bind()}>{course}</button></div>)
             })
         }
 
@@ -76,9 +84,9 @@ export default class BtnStudent extends React.Component{
             <div>
                 <h1>Welcome {this.state.user_fname} {this.state.user_lname}</h1>
                 <Link to="/">sign out</Link><p/>
-                <button onClick = {this.showCourses.bind(this)}>course</button>
-                <p/>
-                <div>{coursesList}</div>
+                {/* <button onClick = {this.showCourses.bind(this)}>course</button>
+                <p/> */}
+                <div>{coursesList}</div>{this.state.questions}
             </div>
         )
     }

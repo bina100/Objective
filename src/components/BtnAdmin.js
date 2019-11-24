@@ -73,13 +73,6 @@ export default class BtnAdmin extends React.Component{
 
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
-        
-        if(this.state.questions){
-            var questions_arr =[]
-            for(var i=0;i<Object.keys(this.state.questions).length;i++)//running over every property in object
-                questions_arr.push(<div key={i}>{this.state.questions[i]}<p/></div>)
-
-        }
 
         return(
             <div>
@@ -88,7 +81,6 @@ export default class BtnAdmin extends React.Component{
                 <p/>
                 Add excel file of students names and tzs.
                 <input type="file" accept=".xlsx" onChange={this.fileChanged}/>
-                <div>{questions_arr}</div>
             </div>
         )
     }

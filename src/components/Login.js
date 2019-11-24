@@ -17,18 +17,11 @@ export default class Login extends React.Component{
            username: '',
            password: '',
            isLoginOpen: true,
-        //    isStudent: false,
-        //    isGuide: false,
-        //    isAdmin: false,
-           redirectStudent: false,
-           redirectGuide: false,
-           redirectAdmin: false,
            username: "",
            password: "",
            errors: []
        }
        this.role="";
-       this.onChange = this.onChange.bind(this)
        this.submitLogin = this.submitLogin.bind(this)
 
     }
@@ -51,7 +44,7 @@ export default class Login extends React.Component{
         });
     }
 
-    //Update Username, password, and email on change event 
+    //Update Username and password on change event 
     onUsernameChange(e) {
         this.setState({username: e.target.value});
         //We want to clear the error when ever the user type something new 
@@ -61,13 +54,6 @@ export default class Login extends React.Component{
     onPasswordChange(e) {
         this.setState({password: e.target.value});
         this.clearValidationErr("password");
-        //By default the state is weak
-        this.setState({pwdState: "weak"});
-        if (e.target.value.length > 12) {
-        this.setState({pwdState: "strong"});
-        } else if (e.target.value.length > 8) {
-        this.setState({pwdState: "medium"});
-        }
     }
     
 
@@ -76,12 +62,6 @@ export default class Login extends React.Component{
         console.log("role: ", this.role)
     }
 
-    
-   onChange(e){
-       this.setState({
-           [e.target.name]: e.target.value
-       })
-   }
    submitLogin(e){
        e.preventDefault()
            //Check for all input fields and show errors if empty (you can implement other cases!)
@@ -132,6 +112,12 @@ export default class Login extends React.Component{
                 state: {id: this.state.password, username: this.state.username}
             }}/>
         }
+        if(this.state.loggedIn && this.role === 'Director'){
+            return <Redirect to={{
+                pathname: "/btnDirector",
+                state: {id: this.state.password, username: this.state.username}
+            }}/>
+        }
         //NULL by default (help us check when rendering)
         let usernameErr = null, passwordErr = null, emailErr = null;
         //Loop and find which ones has the error
@@ -167,6 +153,7 @@ export default class Login extends React.Component{
                 <div className="header">
                 <div className="btn-box">
                     <button type="button" id="Admin"  className="btn-user" onClick={this.checkUser.bind(this)}> Administer </button> ‏
+                    <button type="button" id="Director"  className="btn-user" onClick={this.checkUser.bind(this)}> Director </button> ‏
                     <button type="button" id="Guide" className="btn-user" onClick={this.checkUser.bind(this)}> Guide </button> 
                     <button type="button" id="Student" className="btn-user" onClick={this.checkUser.bind(this)}> Studet </button> 
                 </div>
@@ -175,6 +162,7 @@ export default class Login extends React.Component{
 
                 <div className="input-group">
                     <label htmlFor="username">Username</label>
+                    <i className="fa fa-lock" aria-hidden="true"></i>
                     <input
                     type="text"
                     name="username"
@@ -188,6 +176,7 @@ export default class Login extends React.Component{
 
                 <div className="input-group">
                     <label htmlFor="password">Password</label>
+                    <i className="fa fa-user" aria-hidden="true"></i>
                     <input
                     type="password"
                     name="password"
@@ -195,14 +184,6 @@ export default class Login extends React.Component{
                     placeholder="Password"
                     onChange={this.onPasswordChange.bind(this)}/>
                     <small className="danger-error">{passwordErr ? passwordErr  : ""}</small>
-                    {this.state.password && <div className="password-state">
-                    <div 
-                        className={"pwd pwd-weak " + (pwdWeak ? "show"  : "")}></div>
-                    <div
-                        className={"pwd pwd-medium " + (pwdMedium ? "show" : "")}></div>
-                    <div 
-                        className={"pwd pwd-strong " + (pwdStrong ? "show" : "")}></div>
-                    </div>}
                 </div>        
                 <button
                     type="button"
