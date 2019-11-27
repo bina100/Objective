@@ -2,6 +2,9 @@ import React, {Component} from "react"
 import {Router} from "react-router-dom";
 import axios from "axios";
 import {Link, Redirect} from "react-router-dom";
+import { async } from "q";
+import Questionnaire from './Questionnaire';
+import './BtnGuide.css';
 
 export default class BtnGuide extends React.Component{
     constructor(props){
@@ -13,8 +16,11 @@ export default class BtnGuide extends React.Component{
         this.get_user_details()
 
         this.state = {  
-            fetched: false
+            fetched: false,
+            questions:null
         }
+        this.showCourses()
+        this.showQuestionnaire = this.showQuestionnaire.bind(this)
     }
 
     get_user_details(){
@@ -30,6 +36,27 @@ export default class BtnGuide extends React.Component{
         })();
     }
 
+    showCourses(){
+        (async ()=> {
+            const response = await axios.post(
+                '/return_course_data_per_user',
+                { password: this.user.password, type:'guides'},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data === 'Failed')
+                alert("guide not signed to any course")
+              else{
+                var coursesArr = response.data.split(",")// storing couses names in array
+                this.setState({courses: coursesArr})
+            }
+        })();
+    }
+
+    showQuestionnaire(e){//shows the questionnaire for chosen course on screen
+        console.log("show", e.target.value, " questionnaire")
+        this.setState({questions:<Questionnaire user_type={'guides'} courseName={e.target.value}></Questionnaire>})
+    }
+
     render(){
         if(this.state.loggedIn === false){
             return <Redirect to="/"/>
@@ -37,10 +64,23 @@ export default class BtnGuide extends React.Component{
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
 
+        var coursesList = null
+        if(this.state.courses){
+            coursesList = this.state.courses.map((course, index) => {
+            return(<div key={index}><button value={course} onClick={this.showQuestionnaire.bind()}>{course}</button></div>)
+            })
+        }
+
         return(
-            <div>
-                <h1>Welcome {this.state.user_fname} {this.state.user_lname}</h1>
-                <Link to="/">sign out</Link>
+            <div dir="rtl">
+                <div className="head-of-page">
+                    <h1>שלום {this.state.user_fname} {this.state.user_lname}</h1>
+                </div>
+                <div>{coursesList}</div>{this.state.questions}
+                <div className="btn-sign-out">
+                    <i class="fa fa-sign-out" aria-hidden="true"></i>
+                    <Link to="/" color="gray">התנתק</Link><p/>
+                </div>
             </div>
         )
     }

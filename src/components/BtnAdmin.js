@@ -12,6 +12,7 @@ export default class BtnAdmin extends React.Component{
         this.user.username = this.props.location.state.username
         console.log("user id: ", this.user.password)
         this.get_admin_details()
+        this.get_courses_list()
         var loggedIn = true
         // const token = localStorage.getItem("token")
         // let loggedIn = true
@@ -20,9 +21,17 @@ export default class BtnAdmin extends React.Component{
         // }
         this.state = {  
             loggedIn: loggedIn,
-            fetched: false
+            fetched: false,
+            fetched_courses:false,
+            show_add_questionnaire:false
         }
         // localStorage.setItem("token", null)
+        this.clickCourse = this.clickCourse.bind(this)
+        this.clickAddQuestionnaire = this.clickAddQuestionnaire.bind(this)
+    }
+
+    clickAddQuestionnaire(){
+        this.setState((currentState) => ({show_add_questionnaire: !currentState.show_add_questionnaire}))
     }
 
     fileChanged=(e)=>{
@@ -39,7 +48,7 @@ export default class BtnAdmin extends React.Component{
             (async ()=> {
                 const response = await axios.post(
                     '/push_qustionnaire_to_db',
-                    { questions: this.state.questions, CourseName: 'biology'},
+                    { questions: this.state.questions, CourseName: this.state.chosen_course.course_name},
                     { headers: { 'Content-Type': 'application/json' } }
                   )
                   if(response.data === 'Failed')
@@ -50,6 +59,25 @@ export default class BtnAdmin extends React.Component{
 
         })
         
+    }
+
+    get_courses_list(){
+        (async ()=> {
+            const response = await axios.post(
+                '/return_all_courses',
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data === 'Failed')
+                alert("error loading courses")
+              else{
+                this.setState({fetched_courses: true})
+                this.setState({courses: response.data})
+            }
+        })();
+    }
+
+    clickCourse(e){
+        this.setState({chosen_course:{course_code:e.target.id, course_name:e.target.value}})
     }
 
     get_admin_details(){
@@ -70,17 +98,36 @@ export default class BtnAdmin extends React.Component{
         if(this.state.loggedIn === false){
             return <Redirect to="/"/>
         }
+        if(this.state.fetched_courses === false)
+            return <h4>Loading...</h4>
+        else{
+            var coursesList = null
+            if(this.state.courses){
+                coursesList = this.state.courses.map((course, index) => {
+                return(<button key={index} id={course.Course_code} value={course.CourseName} onClick={this.clickCourse.bind()}>{course.CourseName}</button>)
+                })
+            }
+        }
 
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
 
         return(
-            <div>
-                <h1>Welcome {this.state.admin_fname} {this.state.admin_lname} - Adnministrator</h1>
-                <Link to="/">sign out</Link>
-                <p/>
-                Add excel file of students names and tzs.
-                <input type="file" accept=".xlsx" onChange={this.fileChanged}/>
+            <div dir="rtl">
+                <div className="head-of-page">
+                    <h1>שלום {this.state.admin_fname} {this.state.admin_lname} - מנהל</h1>
+                    <p/>
+                </div>
+                <button onClick={this.clickAddQuestionnaire.bind(this)}>הוסף שאלון</button>
+                {this.state.show_add_questionnaire && <div>
+                    <div>{coursesList}</div>
+    הוסף קובץ שאלון למאגר:
+                    <input type="file" accept=".xlsx" onChange={this.fileChanged}/>
+                </div>}
+                <div className="btn-sign-out">
+                    <i className="fa fa-sign-out" aria-hidden="true"></i>
+                    <Link to="/" color="gray">התנתק</Link><p/>
+                </div>
             </div>
         )
     }

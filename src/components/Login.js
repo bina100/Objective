@@ -148,53 +148,64 @@ export default class Login extends React.Component{
         }
 
         return(  
+            <div className="main-box" dir="rtl">
+                <div>
+                    <p/><h1 className="tytle">ברוכים הבאים לאתר המעבדות</h1><p/>
+                </div>
             <div className="box-container">
             <div className="inner-container">
                 <div className="header">
                 <div className="btn-box">
-                    <button type="button" id="Admin"  className="btn-user" onClick={this.checkUser.bind(this)}> Administer </button> ‏
-                    <button type="button" id="Director"  className="btn-user" onClick={this.checkUser.bind(this)}> Director </button> ‏
-                    <button type="button" id="Guide" className="btn-user" onClick={this.checkUser.bind(this)}> Guide </button> 
-                    <button type="button" id="Student" className="btn-user" onClick={this.checkUser.bind(this)}> Studet </button> 
+                    <button type="button" id="Admin"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל </button> ‏
+                    <button type="button" id="Director"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל מעבדה </button> ‏
+                    <button type="button" id="Guide" className="btn-user" onClick={this.checkUser.bind(this)}> מדריך </button> 
+                    <button type="button" id="Student" className="btn-user" onClick={this.checkUser.bind(this)}> סטודנט </button> 
                 </div>
                 </div>
                 <div className="box">
 
                 <div className="input-group">
-                    <label htmlFor="username">Username</label>
-                    <i className="fa fa-lock" aria-hidden="true"></i>
-                    <input
-                    type="text"
-                    name="username"
-                    className="login-input"
-                    placeholder="Username"
-                    onChange={this.onUsernameChange.bind(this)}/>
+                    <div className="icon-input">
+                        <i className="fa fa-lock fa-border-icon" aria-hidden="true"></i>
+                        <input
+                        type="text"
+                        name="username"
+                        className="login-input"
+                        placeholder="שם משתמש"
+                        onChange={this.onUsernameChange.bind(this)}/>
+                    </div>
                     <small className="danger-error">{usernameErr ? usernameErr  : ""}</small>
-
                 </div>
-                
 
                 <div className="input-group">
-                    <label htmlFor="password">Password</label>
-                    <i className="fa fa-user" aria-hidden="true"></i>
-                    <input
-                    type="password"
-                    name="password"
-                    className="login-input"
-                    placeholder="Password"
-                    onChange={this.onPasswordChange.bind(this)}/>
+                    <div className="icon-input">
+                        <i className="fa fa-user fa-border-icon " aria-hidden="true"></i>
+                        <input
+                        type="password"
+                        name="password"
+                        className="login-input"
+                        placeholder="סיסמה"
+                        onChange={this.onPasswordChange.bind(this)}/>
+                    </div>
                     <small className="danger-error">{passwordErr ? passwordErr  : ""}</small>
-                </div>        
+                    {this.state.password && <div className="password-state">
+                    <div 
+                        className={"pwd pwd-weak " + (pwdWeak ? "show"  : "")}></div>
+                    <div
+                        className={"pwd pwd-medium " + (pwdMedium ? "show" : "")}></div>
+                    <div 
+                        className={"pwd pwd-strong " + (pwdStrong ? "show" : "")}></div>
+                    </div>}
+                </div> 
                 <button
                     type="button"
                     className="login-btn"
-                    onClick={this.submitLogin.bind(this)}>Login
+                    onClick={this.submitLogin.bind(this)}>כניסה
                 </button>
                 </div>
             </div>
             </div>
-            
-
+            </div>  
         );
     }
 }

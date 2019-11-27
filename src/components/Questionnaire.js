@@ -10,6 +10,7 @@ import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
+import './Questionnaire.css'
 
 export default class Questionnaire extends React.Component{
     constructor(props){
@@ -26,6 +27,7 @@ export default class Questionnaire extends React.Component{
             selectedValue8: null,
             selectedValue9: null,
             selectedValue10: null,
+            show_qestionnaire:true,
             comments:{}
         }
         
@@ -73,14 +75,15 @@ export default class Questionnaire extends React.Component{
             return
         (async ()=> {
             const response = await axios.post(
-                'push_filled_qustionnaire_to_db',
-                {answers: answers, comments: this.state.comments, CourseName: this.props.courseName},
+                'push_filled_s_qustionnaire_to_db',
+                {answers: answers, comments: this.state.comments, CourseName: this.props.courseName, user_type:this.props.user_type},
                 { headers: { 'Content-Type': 'application/json' } }
             )
             if(response.data === 'Failed')
                 alert("ארעה שגיאה בשמירת הנתונים")
             else
-                alert("שאלון נשמר במערכת")
+                this.setState((currentState) => ({show_qestionnaire: !currentState.show_qestionnaire}))
+
         })();
     }
 
@@ -110,7 +113,7 @@ export default class Questionnaire extends React.Component{
                     id="outlined-textarea"
                     placeholder="הערה"
                     multiline
-                    rows="3"
+                    rows="1"
                     variant="outlined"
                     onChange={this.onCommentChange.bind(this)}
                   />)
@@ -119,11 +122,14 @@ export default class Questionnaire extends React.Component{
 
         return(
             <div dir = "rtl">
-                <p/><b>שאלון</b><p/>
-                <div>{questions_arr}</div>
-                <button type="button"
-                    className="login-btn"
-                    onClick={this.submitQuestionnaire.bind(this)}>שמור</button>
+                {this.state.show_qestionnaire && <div>
+                    <p/><b>שאלון</b><p/>
+                    <div className="q-arr">{questions_arr}</div>
+                    <button type="button"
+                        className="save-btn"
+                        onClick={this.submitQuestionnaire.bind(this)}>שמור</button>
+                    </div>}
+                {!this.state.show_qestionnaire && <h2>תודה ויום נעים!!!</h2>}
             </div>
         )
     }

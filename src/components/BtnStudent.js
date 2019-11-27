@@ -3,7 +3,9 @@ import {Router} from "react-router-dom";
 import {Link, Redirect} from "react-router-dom";
 import axios from "axios";
 import { async } from "q";
+import './BtnStudent.css'
 import Questionnaire from './Questionnaire';
+import { style, display } from "@material-ui/system";
 
 export default class BtnStudent extends React.Component{
     constructor(props){
@@ -21,7 +23,9 @@ export default class BtnStudent extends React.Component{
         this.state = {
             loggedIn: loggedIn,
             fetched: false,
-            questions:null
+            questions:null,
+            show_courses:true,
+            show_questionnaire:true
         }
         // localStorage.setItem("token", null)
         // window.onbeforeunload=function(){
@@ -48,8 +52,8 @@ export default class BtnStudent extends React.Component{
     showCourses(){
         (async ()=> {
             const response = await axios.post(
-                '/return_course_data_per_student',
-                { password: this.user.password},
+                '/return_course_data_per_user',
+                { password: this.user.password, type:'students'},
                 { headers: { 'Content-Type': 'application/json' } }
               )
               if(response.data === 'Failed')
@@ -63,7 +67,8 @@ export default class BtnStudent extends React.Component{
 
     showQuestionnaire(e){//shows the questionnaire for chosen course on screen
         console.log("show", e.target.value, " questionnaire")
-        this.setState({questions:<Questionnaire courseName={e.target.value}></Questionnaire>})
+        this.setState({questions:<Questionnaire user_type={'students'} courseName={e.target.value}></Questionnaire>})
+        this.setState((currentState) => ({show_courses: !currentState.show_courses}))
     }
 
     render(){
@@ -76,17 +81,20 @@ export default class BtnStudent extends React.Component{
         var coursesList = null
         if(this.state.courses){
             coursesList = this.state.courses.map((course, index) => {
-            return(<div key={index}><button value={course} onClick={this.showQuestionnaire.bind()}>{course}</button></div>)
+            return(this.state.show_courses && <div key={index}><button className="btn_of_course" value={course} onClick={this.showQuestionnaire.bind()}>{course}</button></div>)
             })
         }
 
         return(
-            <div>
-                <h1>Welcome {this.state.user_fname} {this.state.user_lname}</h1>
-                <Link to="/">sign out</Link><p/>
-                {/* <button onClick = {this.showCourses.bind(this)}>course</button>
-                <p/> */}
-                <div>{coursesList}</div>{this.state.questions}
+            <div dir="rtl">
+                <div className="head-of-page">
+                    <h1>שלום {this.state.user_fname} {this.state.user_lname} </h1>
+                </div>
+                <div className="list-of-courses">{coursesList}</div>{this.state.questions}
+                <div className="btn-sign-out">
+                    <i className="fa fa-sign-out" aria-hidden="true"></i>
+                    <Link to="/" color="gray">התנתק</Link><p/>
+                </div>
             </div>
         )
     }
