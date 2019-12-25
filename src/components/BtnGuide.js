@@ -21,6 +21,7 @@ export default class BtnGuide extends React.Component{
         }
         this.showCourses()
         this.showQuestionnaire = this.showQuestionnaire.bind(this)
+        this.showStudent = this.showStudent.bind(this)
     }
 
     get_user_details(){
@@ -46,8 +47,9 @@ export default class BtnGuide extends React.Component{
               if(response.data === 'Failed')
                 alert("guide not signed to any course")
               else{
-                var coursesArr = response.data.split(",")// storing couses names in array
-                this.setState({courses: coursesArr})
+                var coursesArr = response.data.courses_names.split(",")// storing couses names in array
+                this.setState({courses_names: coursesArr})
+                this.setState({courses_codes: JSON.parse(response.data.courses_id)})//array of objects {code:x, semester:y}
             }
         })();
     }
@@ -56,6 +58,25 @@ export default class BtnGuide extends React.Component{
         console.log("show", e.target.value, " questionnaire")
         this.setState({questions:<Questionnaire user_type={'guides'} courseName={e.target.value}></Questionnaire>})
     }
+    
+    showStudent(e){
+        if(true){
+            var course = JSON.parse(e.target.id)
+        }
+        (async ()=> {
+            const response = await axios.post(
+                '/returns_students_per_guide_and_lab',
+                { CourseCode: course.CourseCode, LabNum:1},//??????????????
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data === 'Failed')
+                alert("err returns_students_per_guide_and_lab")
+              else{
+                console.log(response.data)
+            }
+        })();
+    }
+
 
     render(){
         if(this.state.loggedIn === false){
@@ -65,9 +86,9 @@ export default class BtnGuide extends React.Component{
             return <h2>Loading...</h2>
 
         var coursesList = null
-        if(this.state.courses){
-            coursesList = this.state.courses.map((course, index) => {
-            return(<div key={index}><button value={course} onClick={this.showQuestionnaire.bind()}>{course}</button></div>)
+        if(this.state.courses_names && this.state.courses_codes){
+            coursesList = this.state.courses_names.map((course, index) => {
+            return(<div key={index}><button id={JSON.stringify(this.state.courses_codes[index])} value={course} onClick={this.showStudent.bind(this)}>{course}</button></div>)
             })
         }
 
@@ -78,7 +99,7 @@ export default class BtnGuide extends React.Component{
                 </div>
                 <div>{coursesList}</div>{this.state.questions}
                 <div className="btn-sign-out">
-                    <i class="fa fa-sign-out" aria-hidden="true"></i>
+                    <i className="fa fa-sign-out" aria-hidden="true"></i>
                     <Link to="/" color="gray">התנתק</Link><p/>
                 </div>
             </div>

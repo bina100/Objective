@@ -27,34 +27,36 @@ export default class Questionnaire extends React.Component{
             selectedValue8: null,
             selectedValue9: null,
             selectedValue10: null,
-            show_qestionnaire:true,
-            comments:{}
+            show_qestionnaire:false,
+            comments:''
         }
         
         // const [selectedValue, setSelectedValue] = React.useState('a');
 
-        this.showQuestionnaire(this.props.courseName)
+        this.showQuestionnaire(this.props.courseCode)
         this.handleChange = this.handleChange.bind(this)
         this.onCommentChange = this.onCommentChange.bind(this)
     }
 
-    showQuestionnaire(courseName){//fetches the questionnaire for chosen course
+    showQuestionnaire(courseCode){//fetches the questionnaire for chosen course
         (async ()=> {
             const response = await axios.post(
                 'return_course_qustionnaire',
-                {CourseName: courseName},
+                {CourseCode: courseCode},
                 { headers: { 'Content-Type': 'application/json' } }
             )
             if(response.data === 'Failed')
-                alert("err fetching questionnaire")
-            else
+                alert("No matching Questionnaire in the system")
+            else{
                 this.setState({questions: response.data})
+                this.setState((currentState) => ({show_qestionnaire: !currentState.show_qestionnaire}))
+            }
         })();
     }
 
     //Update comments
     onCommentChange(e) {
-        this.state.comments[parseInt(e.target.name)]=e.target.value
+        this.state.comments=e.target.value
     }
 
     handleChange = event => {
@@ -75,10 +77,12 @@ export default class Questionnaire extends React.Component{
             return
         (async ()=> {
             const response = await axios.post(
+                  //!!!!!!----lab num----!!!!!!!!!
                 'push_filled_s_qustionnaire_to_db',
                 {answers: answers, comments: this.state.comments, CourseName: this.props.courseName, user_type:this.props.user_type},
                 { headers: { 'Content-Type': 'application/json' } }
             )
+            console.log(response.data)
             if(response.data === 'Failed')
                 alert("ארעה שגיאה בשמירת הנתונים")
             else
@@ -105,19 +109,19 @@ export default class Questionnaire extends React.Component{
                         />
                     </label>)
                 }
-                questions_arr.push(<p key={'p2'+i}/>,<TextField
+            }
+            questions_arr.push(<p key='p_comment'/>,<TextField
                     style={{width: 600}}
                     dir="rtl"
-                    key={(i+1)}
-                    name={(i+1)+""}
+                    key="txt_comment"
+                    name="comment"
                     id="outlined-textarea"
-                    placeholder="הערה"
+                    placeholder="הערות"
                     multiline
-                    rows="1"
+                    rows="3"
                     variant="outlined"
                     onChange={this.onCommentChange.bind(this)}
                   />)
-            }
         }
 
         return(
@@ -129,7 +133,7 @@ export default class Questionnaire extends React.Component{
                         className="save-btn"
                         onClick={this.submitQuestionnaire.bind(this)}>שמור</button>
                     </div>}
-                {!this.state.show_qestionnaire && <h2>תודה ויום נעים!!!</h2>}
+                {(!this.state.show_qestionnaire && this.state.questions) && <h2>תודה ויום נעים!!!</h2>}
             </div>
         )
     }

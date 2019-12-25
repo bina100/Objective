@@ -4,6 +4,9 @@ import axios from "axios";
 import './BtnDirector.css'
 import {Link, Redirect} from "react-router-dom";
 import NumericInput from 'react-input-number';
+import {Table} from 'reactstrap';
+
+
 
 export default class BtnDirector extends React.Component{
     constructor(props){
@@ -53,7 +56,8 @@ export default class BtnDirector extends React.Component{
     }
 
     clickCourse(e){
-        this.setState({chosen_course:{course_code:e.target.id, course_name:e.target.value}})
+        var course_id = JSON.parse(e.target.id)
+        this.setState({chosen_course:{course_code:course_id.code, semester:course_id.semester, course_name:e.target.value}})
     }
 
     show_all_questionnaires(e){
@@ -64,7 +68,7 @@ export default class BtnDirector extends React.Component{
         (async ()=> {
             const response = await axios.post(
                 '/return_course_follow_up',
-                {course_code:this.state.chosen_course.course_code, course_name:this.state.chosen_course.course_name, lab_num: this.state.labNum},
+                {course_code:this.state.chosen_course.course_code, semester:this.state.chosen_course.semester, course_name:this.state.chosen_course.course_name, lab_num: this.state.labNum},
                 { headers: { 'Content-Type': 'application/json' } }
               )
               if(response.data === 'Failed')
@@ -112,21 +116,26 @@ export default class BtnDirector extends React.Component{
             var coursesList = null
             if(this.state.courses){
                 coursesList = this.state.courses.map((course, index) => {
-                return(<button key={index} id={course.Course_code} value={course.CourseName} onClick={this.clickCourse.bind()}>{course.CourseName}</button>)
+                return(<button key={index} id={JSON.stringify({code:course.Course_code, semester:course.Semester})} value={course.CourseName} onClick={this.clickCourse.bind()}>{course.CourseName}</button>)
                 })
             }
         }
+        var full_table = null
         if(this.state.full_table!==''){
-            return(<table dir='rtl'>
+            full_table = (<div><Table dir="rtl" id = "table" >
+            {/* // striped bordered hover> */}
+            
                         <tbody>
                         {
-                                this.state.full_table.map((row,i) =>(
-                                <tr key={i}>{row.map((num,j)=><td key={j}>{num}</td>)}
-                                </tr>
-                                ))
+                                this.state.full_table.map((row,i) =>{
+                                    if(i == 0)
+                                        return <tr key={i}>{row.map((num,j)=><th key={j}>{num}</th>)}</tr>
+                                    else
+                                       return <tr key={i}>{row.map((num,j)=><td key={j}>{num}</td>)}</tr>
+                                })
                         }
                         </tbody>
-            </table>)
+            </Table></div>)
         }
 
         return(
@@ -137,7 +146,7 @@ export default class BtnDirector extends React.Component{
                 <div>{coursesList}</div>
                 <input type="number" step="1" min={1} max={10} value={this.state.labNum} onChange={this.setLabNum.bind(this)} />
                 <p/><button onClick={this.show_all_questionnaires.bind(this)}>צפיה בכל השאלונים</button><p/>
-                {/* <div>{this.state.full_table}</div> */}
+                <div>{full_table}</div>
                 <div className="btn-sign-out">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>
                     <Link to="/" color="gray">התנתק</Link><p/>
