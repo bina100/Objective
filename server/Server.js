@@ -123,35 +123,75 @@ app.post('/userExist', function(req, res) {
     } 
   });
 
-  // //-------------------------------------------------------------
-  // app.post('/push_guide_qustionnaire_to_db', function(req, res) {
-  //   // Get sent data.
-  //   var questions = req.body.questions//array
-  //   var ranges = req.body.ranges
-  //   var course = 
-  //   console.log("students: ", students)
-
-  //   for(var i=0;i<students.length;i++){//running over every student in matrix
-  //     var sql = "INSERT INTO students(FirstName, LastName, Username, Password) values('"+students[i][0]+"','"+students[i][1]+ "', '"+students[i][2]+"', '"+students[i][3]+"');"
-  //     console.log('query: ', sql)
-  //     var query = db.query(sql, function(err, result) {
-  //       // check result  
-  //       if(err){
-  //         console.log('err: ', err)
-  //         res.end(JSON.stringify(err))
-  //       }
-  //       else if(result === undefined){//if something went wrong while inserting
-  //         console.log("load_students- failed..")
-  //         res.end('Failed');
-  //       }
-  //       else{
-  //         console.log("load_students - success....")
-  //         res.end('Success');
-  
-  //       }
-  //     });
-  //   } 
-  // });
+  //-------------------------------------------------------------
+  app.post('/push_guide_qustionnaire_to_db', function(req, res) {
+    // Get sent data.
+    var table = req.body.table//matrix
+    var course = req.body.course
+    console.log("table: ", table)
+    // var LabNum = 
+    var sum = 0
+    var q_code_res
+    var q_code = "select Questionnaire_code from questionnaires where Course_code = "+course.CourseCode+";"
+    var query = db.query(q_code, function(err, q_res) {
+      // check result  
+      if(err){
+        console.log('err: ', err)
+        res.end(JSON.stringify(err))
+      }
+      else{
+        q_code_res = q_res[0].Questionnaire_code
+        for(var i=1;i<table.length;i++){//running over every student in matrix
+          for(var j=2;j<table[0].length;j++){
+                if(j==10){
+                  console.log('@: ', table[i][j], " sum: ", sum)
+                  var sql = "insert into guide_questionnaire(Questionnaire_code, GuideCode, StudentCode, QuestionNum, AnswerNum, LabNum) values("+q_code_res+", "+user_id+", "+table[i][0]+", "+11+", "+sum+", 1);"//!!!LabNum
+                }
+                else{
+                  var sql = "insert into guide_questionnaire(Questionnaire_code, GuideCode, StudentCode, QuestionNum, AnswerNum, LabNum) values("+q_code_res+", "+user_id+", "+table[i][0]+", "+(j+1)+", "+table[i][j]+", 1);"//!!!LabNum
+                  sum= (sum+parseInt(table[i][j]))
+                  console.log("sum: ", sum)
+                }
+                  console.log('query: ', sql)
+                var query = db.query(sql, function(err, result) {
+                  // check result  
+                  if(err){
+                    console.log('err: ', err)
+                    res.end(JSON.stringify(err))
+                  }
+                  else if(result === undefined){//if something went wrong while inserting
+                    console.log("load_students- failed..")
+                    res.end('Failed');
+                  }
+                  else{
+                    console.log("i= ",i,  j,table[0].length )
+                    // res.end('Success');
+                    if(j == table[0].length){
+                      j++
+                      var sql = "insert into guide_questionnaire(Questionnaire_code, GuideCode, StudentCode, QuestionNum, AnswerNum, LabNum) values("+q_code_res+", "+user_id+", "+table[i-1][0]+", "+12+", "+table[i-1][10]+", 1);"//!!!LabNum
+                      var query = db.query(sql, function(err, result) {
+                        // check result  
+                        if(err){
+                          console.log('err: ', err)
+                          res.end(JSON.stringify(err))
+                        }
+                        else if(result === undefined){//if something went wrong while inserting
+                          console.log("load_students- failed..")
+                          res.end('Failed');
+                        }
+                        else{
+                          console.log("push_guide_qustionnaire_to_db - success....")
+                          res.end('Success');
+                        }
+                    });
+                    }
+                  }
+              });
+          }
+        } 
+      }
+    });
+  });
   
 
   //-------------------------------------------------------------
@@ -615,35 +655,26 @@ app.post('/userExist', function(req, res) {
     });//res_q_code   
   });//post
 
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!-------------------------------------------------------------
-    app.post('/return_all_students_per_guide', function(req, res) {
+    //-------------------------------------------------------------
+    app.post('/return_guide_questionnaire', function(req, res) {
     // Get sent data.
     console.log("student id: ", user_id)
-    var comments = req.body.comments//object type in format {0: "question1", 1: question2", ...}
-    var answers = req.body.answers
-    var CourseName = req.body.CourseName
-    console.log("comments: ", comments)
-    console.log("answers: ", answers)
+    var CourseCode = req.body.CourseCode
 
-    for(i=1;i<=Object.keys(answers).length;i++){//running over every property in object
-      if(!comments[i])
-        comments[i]=""
-      console.log("student id: ", user_id)
-      var sql = "INSERT INTO guide_questionnaire(Questionnaire_code, GuideCode, StudentCode, QuestionNum, AnswerNum, LabNum, comment) values((SELECT Questionnaire_code from questionnaires where Course_code = (SELECT Course_code FROM Courses where CourseName = '"+CourseName+"')), '"+user_id+"', "+i+", "+answers[i]+", 1, '"+comments[i]+"');"
-      console.log("sql: ", sql)
-      var query = db.query(sql, function(err, result) {
-        // check result  
-        if(result === undefined){//if something went wrong while inserting
-          console.log("push_filled_qustionnaire_to_db- failed..")
-          res.end('Failed');
-        }
-        else{
-          console.log("push_filled_qustionnaire_to_db - success....")
-          res.end('Success');
-
-        }
-      });
-    } 
+    var sql = "select QuestionNum, Question, AnswerRange from guide_questions where Questionnaire_code = (select Questionnaire_code from questionnaires where Course_code = "+CourseCode+");"
+    console.log("sql: ", sql)
+    var query = db.query(sql, function(err, result) {
+      // check result  
+      if(result === undefined){//if something went wrong while inserting
+        console.log("return_all_students_per_guide- failed..")
+        res.end('Failed');
+      }
+      else{
+        console.log("return_all_students_per_guide - success....")
+        console.log('result: ', result)
+        res.end(JSON.stringify(result));
+      }
+    });
   });
 
   //-----------------------------------------------------
@@ -688,7 +719,7 @@ app.post('/userExist', function(req, res) {
                 }
                 else{
                   console.log('res_student_name ',i, res_student_name)
-                  studentsArr.push({FistName:res_student_name[0].FirstName, LastName:res_student_name[0].LastName, Password: studentPwd})
+                  studentsArr.push({FirstName:res_student_name[0].FirstName, LastName:res_student_name[0].LastName, Password: studentPwd})
                   count--
                   if(count === 0)
                     res.end(JSON.stringify(studentsArr))

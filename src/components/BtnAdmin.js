@@ -55,9 +55,11 @@ export default class BtnAdmin extends React.Component{
             var guide_questions = {}
             var ranges = {}
             for(var i=0;i<arr.length;i++){
-                if(i==0 || i==1 || i==10 || i==11 || i==12)
+                if(i==0 || i==1)
                     guide_questions[i] = arr[i]
                 else{
+                    if(i==10 || i==11)
+                        ranges[i] = 100
                     ranges[i] = arr[i].match(/\d+/)[0]// extracting numbers from question title
                     guide_questions[i] = arr[i]
                 }
