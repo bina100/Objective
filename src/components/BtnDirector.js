@@ -73,24 +73,49 @@ export default class BtnDirector extends React.Component{
               )
               if(response.data === 'Failed')
                 alert("error loading table")
-              else{
-                // console.log("table: ", response.data)
-                var data = [["שם","ת.ז.", "A1","A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"]];
-                var guide_table = response.data.guide_table
-                var student_table = response.data.student_table
-                for(var i=0;i<student_table.length;i+=2){
-                    var row=[student_table[i].name, student_table[i].id]
-                    var curr_student = student_table[i+1]
-                    var curr_guide = guide_table[i/2].guide
-                    console.log('curr g: ', curr_guide)
-                    for(var j=0;j<curr_student.student.length;j++){
-                        row.push(curr_student.student[j].AnswerNum +':' +curr_guide[j].AnswerNum)
-                        // row.push(curr_guide[j].AnswerNum)
+              else{ // fetching answer ranges before building table
+                (async ()=> {
+                    const response_ranges = await axios.post(
+                        '/fetch_answer_ranges_per_g_q',
+                        {CourseCode:this.state.chosen_course.course_code},
+                        { headers: { 'Content-Type': 'application/json' } }
+                      )
+                      if(response.data === 'Failed')
+                        alert("error loading ranges")
+                      else{
+                        var ranges = (response_ranges.data).slice(2, response_ranges.data.length-2)
+                        var data = [["שם","ת.ז.", "A1 ("+ranges[0].AnswerRange+")",
+                                        "A2 ("+ranges[1].AnswerRange+")", 
+                                        "A3 ("+ranges[2].AnswerRange+")", 
+                                        "A4 ("+ranges[3].AnswerRange+")", 
+                                        "A5 ("+ranges[4].AnswerRange+")", 
+                                        "A6 ("+ranges[5].AnswerRange+")", 
+                                        "A7 ("+ranges[6].AnswerRange+")", 
+                                        "A8 ("+ranges[7].AnswerRange+")",
+                                         "סכום ציונים", "ציון אינטואטיבי"]];
+                        var guide_table = response.data.guide_table
+                        var student_table = response.data.student_table
+                        for(var i=0;i<student_table.length;i+=2){
+                            var row=[student_table[i].name, student_table[i].id]
+                            var curr_student = student_table[i+1]
+                            var curr_guide = guide_table[i/2].guide
+                            
+                            var factor = 1
+                            for(var j=1, k=0;j<curr_student.student.length;j++, k++){
+                                if(j == 4)
+                                    j++
+                                if(k < ranges.length)
+                                    factor = ranges[k].AnswerRange/10
+                                row.push(Math.floor((curr_student.student[j].AnswerNum)*factor) +':' +curr_guide[k].AnswerNum)
+                            }
+                            row.push(curr_guide[k+1].AnswerNum)
+                            row.push(curr_guide[k].AnswerNum)
+                            data.push(row)
+                        }
+                        this.setState({full_table:data})
+                        // console.log('full_table: ', this.state.full_table)
                     }
-                    data.push(row)
-                }
-                this.setState({full_table:data})
-                // console.log('full_table: ', this.state.full_table)
+                })();
             }
         })();
     }

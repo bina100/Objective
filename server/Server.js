@@ -577,7 +577,7 @@ app.post('/userExist', function(req, res) {
           }
           else{//--------fetching sudent and guide codes---------------------------------------------
             var lab_code = res_lab_code[0].LabCode
-            var return_student_guide_pairs = 'SELECT distinct StudentCode, GuideCode FROM scheduling WHERE LabCode = '+lab_code+' and LabNum;'
+            var return_student_guide_pairs = 'SELECT distinct StudentCode, GuideCode FROM scheduling WHERE LabCode = '+lab_code+';'
             console.log("QUERY: ", return_student_guide_pairs)
             // Do a MySQL query.
             var query = db.query(return_student_guide_pairs, function(err, res_s_g) {
@@ -655,83 +655,100 @@ app.post('/userExist', function(req, res) {
     });//res_q_code   
   });//post
 
-    //-------------------------------------------------------------
-    app.post('/return_guide_questionnaire', function(req, res) {
-    // Get sent data.
-    console.log("student id: ", user_id)
-    var CourseCode = req.body.CourseCode
-
-    var sql = "select QuestionNum, Question, AnswerRange from guide_questions where Questionnaire_code = (select Questionnaire_code from questionnaires where Course_code = "+CourseCode+");"
-    console.log("sql: ", sql)
+  
+  //-------------------------------------------------------------
+  app.post('/fetch_answer_ranges_per_g_q', function(req, res) {
+    course_code = req.body.CourseCode
+    var sql = "SELECT AnswerRange from guide_questions where Questionnaire_code = (select Questionnaire_code from questionnaires where Course_code = "+course_code+");"
     var query = db.query(sql, function(err, result) {
       // check result  
-      if(result === undefined){//if something went wrong while inserting
-        console.log("return_all_students_per_guide- failed..")
+      if(result === undefined){//if something went wrong while fetching
+        console.log("fetch_answer_ranges_per_g_q- failed..")
         res.end('Failed');
       }
       else{
-        console.log("return_all_students_per_guide - success....")
-        console.log('result: ', result)
         res.end(JSON.stringify(result));
       }
     });
   });
 
-  //-----------------------------------------------------
-  app.post('/returns_students_per_guide_and_lab', function(req, res) {
-    console.log('hello returns_students_per_guide_and_lab')
-    // Get sent data.
-    var CourseCode = req.body.CourseCode
-    var LabNum = req.body.LabNum
-    console.log('CourseCode: ', CourseCode)
-    console.log('LabNum: ', LabNum)
-    // Do a MySQL query.
-    var retuen_lab_code = 'SELECT LabCode FROM Labs WHERE CourseCode = '+CourseCode+' and LabNum = '+LabNum+';'
-    var query = db.query(retuen_lab_code, function(err, res_lab_code) {
-      // check result
-      if(res_lab_code.length === 0){//if student doesn't exist in the system
-        console.log("return_lab_code - failed..")
-        res.end('Failed');
-      }
-      else{
-        var return_student_codes = 'SELECT StudentCode from scheduling where GuideCode = "'+user_id+'" and LabCode = '+res_lab_code[0].LabCode+';'
-        // Do a MySQL query.
-        var query = db.query(return_student_codes, function(err, res_students) {
-          // check result
-          if(res_students.length === 0){//if student doesn't exist in the system
-            console.log("return_students - failed..")
-            res.end('Failed');
-          }
-          else{
-            var count = res_students.length
-            var studentsArr = []
-            console.log("return_students: ", res_students[0])
-            for(var i=0;i<res_students.length;i++){
-              var studentPwd = res_students[i].StudentCode
-              console.log('studentPwd: ', studentPwd)
-              var return_student_name = 'SELECT FirstName, LastName FROM students where Password = '+studentPwd+';'
-              console.log('sql: ', return_student_name)
-              var query = db.query(return_student_name, function(err, res_student_name) {
-                // check result
-                if(res_student_name.length === 0){//if student doesn't exist in the system
-                  console.log("res_student_name - failed..")
-                  res.end('Failed');
-                }
-                else{
-                  console.log('res_student_name ',i, res_student_name)
-                  studentsArr.push({FirstName:res_student_name[0].FirstName, LastName:res_student_name[0].LastName, Password: studentPwd})
-                  count--
-                  if(count === 0)
-                    res.end(JSON.stringify(studentsArr))
-                }
-              });
-            }
-            // res.send(result[0]);//result comes as an array
-          }
-        });
-      }
-    });
+  //-------------------------------------------------------------
+  app.post('/return_guide_questionnaire', function(req, res) {
+  // Get sent data.
+  console.log("student id: ", user_id)
+  var CourseCode = req.body.CourseCode
+
+  var sql = "select QuestionNum, Question, AnswerRange from guide_questions where Questionnaire_code = (select Questionnaire_code from questionnaires where Course_code = "+CourseCode+");"
+  console.log("sql: ", sql)
+  var query = db.query(sql, function(err, result) {
+    // check result  
+    if(result === undefined){//if something went wrong while inserting
+      console.log("return_all_students_per_guide- failed..")
+      res.end('Failed');
+    }
+    else{
+      console.log("return_all_students_per_guide - success....")
+      console.log('result: ', result)
+      res.end(JSON.stringify(result));
+    }
   });
+});
+
+//-----------------------------------------------------
+app.post('/returns_students_per_guide_and_lab', function(req, res) {
+  console.log('hello returns_students_per_guide_and_lab')
+  // Get sent data.
+  var CourseCode = req.body.CourseCode
+  var LabNum = req.body.LabNum
+  console.log('CourseCode: ', CourseCode)
+  console.log('LabNum: ', LabNum)
+  // Do a MySQL query.
+  var retuen_lab_code = 'SELECT LabCode FROM Labs WHERE CourseCode = '+CourseCode+' and LabNum = '+LabNum+';'
+  var query = db.query(retuen_lab_code, function(err, res_lab_code) {
+    // check result
+    if(res_lab_code.length === 0){//if student doesn't exist in the system
+      console.log("return_lab_code - failed..")
+      res.end('Failed');
+    }
+    else{
+      var return_student_codes = 'SELECT StudentCode from scheduling where GuideCode = "'+user_id+'" and LabCode = '+res_lab_code[0].LabCode+';'
+      // Do a MySQL query.
+      var query = db.query(return_student_codes, function(err, res_students) {
+        // check result
+        if(res_students.length === 0){//if student doesn't exist in the system
+          console.log("return_students - failed..")
+          res.end('Failed');
+        }
+        else{
+          var count = res_students.length
+          var studentsArr = []
+          console.log("return_students: ", res_students[0])
+          for(var i=0;i<res_students.length;i++){
+            var studentPwd = res_students[i].StudentCode
+            console.log('studentPwd: ', studentPwd)
+            var return_student_name = 'SELECT FirstName, LastName FROM students where Password = '+studentPwd+';'
+            console.log('sql: ', return_student_name)
+            var query = db.query(return_student_name, function(err, res_student_name) {
+              // check result
+              if(res_student_name.length === 0){//if student doesn't exist in the system
+                console.log("res_student_name - failed..")
+                res.end('Failed');
+              }
+              else{
+                console.log('res_student_name ',i, res_student_name)
+                studentsArr.push({FirstName:res_student_name[0].FirstName, LastName:res_student_name[0].LastName, Password: studentPwd})
+                count--
+                if(count === 0)
+                  res.end(JSON.stringify(studentsArr))
+              }
+            });
+          }
+          // res.send(result[0]);//result comes as an array
+        }
+      });
+    }
+  });
+});
 
 app.listen('5000', ()=>{
     console.log('app running on port 5000')
