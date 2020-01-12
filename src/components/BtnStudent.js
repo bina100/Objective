@@ -94,8 +94,8 @@ export default class BtnStudent extends React.Component{
 
     showQuestionnaire(e){//shows the questionnaire for chosen course on screen
         this.setState({questions:<Questionnaire user_type={'students'} courseName={this.state.selectedCourse.name} courseCode={this.state.selectedCourse.code} courseSemester={this.state.selectedCourse.semester}></Questionnaire>})
-        alert(this.state.show_courses_and_guides)
-        alert(JSON.stringify(this.state.questions))
+        // alert(this.state.show_courses_and_guides)
+        // alert(JSON.stringify(this.state.questions))
     }
 
     render(){

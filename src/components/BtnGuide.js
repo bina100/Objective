@@ -94,13 +94,13 @@ export default class BtnGuide extends React.Component{
         if(true){
             this.setState({showQuestionnaire:true})
             var course = JSON.parse(e.target.id)
- 
+            console.log("course: ", course)
         }
         // fetching all students per guide
         (async ()=> {
             const response = await axios.post(
                 '/returns_students_per_guide_and_lab',
-                { CourseCode: course.CourseCode, LabNum:1},//??????????????
+                { course: course},
                 { headers: { 'Content-Type': 'application/json' } }
               )
               if(response.data === 'Failed')
@@ -150,17 +150,17 @@ export default class BtnGuide extends React.Component{
     }
 
     submitQuestionnaire=(e)=>{
-        // alert('hi')
-        // console.log('full table: ', this.state.questionnaire_table)
         (async ()=> {
             // console.log("course: ", this.state.course.CourseCode)
             const response = await axios.post(
-                '/push_guide_qustionnaire_to_db',
+                '/push_filled_g_qustionnaire_to_db',
                 { table: this.state.questionnaire_table, course:this.state.course},
                 { headers: { 'Content-Type': 'application/json' } }
               )
+              if(response.data.code === 'ER_DUP_ENTRY')
+                alert("שאלון כבר מולא עי המדריך")
               if(response.data === 'Failed')
-                alert("שגיעה בשמירת הנתונים")
+                alert("שגיאה בשמירת הנתונים")
               else{
                 this.setState({showQuestionnaire:false})
                 this.setState({saveQestionnaire:true})

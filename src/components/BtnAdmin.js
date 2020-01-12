@@ -133,7 +133,7 @@ export default class BtnAdmin extends React.Component{
                     { students: students},
                     { headers: { 'Content-Type': 'application/json' } }
                   )
-                  if(response.data.code === 'ER_DUP_ENTRY')//checking if course already has questionnaire
+                  if(response.data.code === 'ER_DUP_ENTRY')//making sure not loading doubles
                     alert('duplicates in student file')
                   else if(response.data === 'Failed')
                     alert("error loading students")

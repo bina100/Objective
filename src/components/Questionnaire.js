@@ -60,7 +60,6 @@ export default class Questionnaire extends React.Component{
     }
 
     handleChange = event => {
-        console.log('id: ', event.target.id, ' value: ', event.target.value)
         this.setState({['selectedValue'+event.target.id]:event.target.value});
       };
 
@@ -79,10 +78,11 @@ export default class Questionnaire extends React.Component{
             const response = await axios.post(
                   //!!!!!!----lab num----!!!!!!!!!
                 'push_filled_s_qustionnaire_to_db',
-                {answers: answers, comments: this.state.comments, CourseName: this.props.courseName, user_type:this.props.user_type},
+                {answers: answers, comments: this.state.comments, CourseName: this.props.courseName, CourseCode:this.props.courseCode, semester:this.props.courseSemester, user_type:this.props.user_type},
                 { headers: { 'Content-Type': 'application/json' } }
             )
-            console.log(response.data)
+            if(response.data.code === 'ER_DUP_ENTRY')
+                alert("שאלון כבר מולא עי הסטודנט")
             if(response.data === 'Failed')
                 alert("ארעה שגיאה בשמירת הנתונים")
             else
