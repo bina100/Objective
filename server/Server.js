@@ -635,6 +635,22 @@ app.post('/userExist', function(req, res) {
                       console.log('came back from fetching student q')
                     }
                   });
+                   //-------fetching guide details--------------//
+                   var return_guide_details = 'SELECT FirstName, LastName, Password FROM guides WHERE Password = '+res_s_g[i].GuideCode+';'
+                   console.log('query: ', return_guide_details)
+                   var query = db.query(return_guide_details, function(err, res_g_d) {
+                     console.log("result-return_guide_details: ",res_g_d)
+                     if(err)
+                       console.log('err', err)
+                     else if(res_g_d.length === 0){//if student doesn't exist in the system
+                       console.log("return_guide_details - failed..")
+                       res.end('Failed');
+                     }
+                     else{
+                       guide_table.push({name:res_g_d[0].FirstName +' '+res_g_d[0].LastName, id:res_g_d[0].Password})
+                       console.log('came back from fetching guide d')
+                     }
+                   });
                   //-------fetching guide answers--------------//
                   var return_guide_questionnaire = 'SELECT QuestionNum, AnswerNum FROM guide_questionnaire WHERE Questionnaire_code = '+res_q_code[0].Questionnaire_code+' and GuideCode = '+ res_s_g[i].GuideCode+' and StudentCode = '+res_s_g[i].StudentCode+' and LabNum = '+user.lab_num+';'
                   var query = db.query(return_guide_questionnaire, function(err, res_g_q) {

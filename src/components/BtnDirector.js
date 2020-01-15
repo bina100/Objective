@@ -5,6 +5,7 @@ import './BtnDirector.css'
 import {Link, Redirect} from "react-router-dom";
 import NumericInput from 'react-input-number';
 import {Table} from 'reactstrap';
+import {CSVLink, CSVDownload} from 'react-csv';
 
 
 
@@ -21,10 +22,16 @@ export default class BtnDirector extends React.Component{
             fetched_name: false,
             fetched_courses:false,
             labNum:1,
-            full_table:''
+            full_table:'',
+            exception_table:'',
+            gap:'',
+            show_full_table:false,
+            show_exception_table:false
         }
         this.clickCourse = this.clickCourse.bind(this)
         this.show_all_questionnaires = this.show_all_questionnaires.bind(this)
+        this.show_exceptional_events = this.show_exceptional_events.bind(this)
+        this.set_table = this.set_table.bind(this)
     }
 
     get_user_details(){
@@ -60,7 +67,38 @@ export default class BtnDirector extends React.Component{
         this.setState({chosen_course:{course_code:course_id.code, semester:course_id.semester, course_name:e.target.value}})
     }
 
+    update_gap(e){
+        this.setState({gap:e.target.value})
+    }
+
+    set_table (data, table_type, err) {
+        if(err)
+            alert("err!!!!!")
+        else{
+            if(table_type == "show_all"){
+                this.setState({full_table:data})
+                this.setState((currentState) => ({show_full_table: !currentState.show_full_table}))
+            }
+            else{// exceptional events
+                this.setState({exception_table:data})
+                if(this.state.exception_table.length >1){
+                    this.setState((currentState) => ({show_exception_table: !currentState.show_exception_table}))
+                }
+            }
+
+        }
+    }
+
     show_all_questionnaires(e){
+        this.fill_table(e, "show_all",'', this.set_table)        
+    }
+
+    show_exceptional_events(e){
+        this.fill_table(e, "exceptional_events", this.state.gap, this.set_table)
+    }
+
+
+    fill_table(e, table_type, gap, callback){
         if(!this.state.chosen_course){
             alert('please click on course')
             return
@@ -84,7 +122,7 @@ export default class BtnDirector extends React.Component{
                         alert("error loading ranges")
                       else{
                         var ranges = (response_ranges.data).slice(2, response_ranges.data.length-2)
-                        var data = [["שם","ת.ז.", "A1 ("+ranges[0].AnswerRange+")",
+                        var data = [["שם סטודנט","ת.ז. סטודנט", "שם מדריך", "A1 ("+ranges[0].AnswerRange+")",
                                         "A2 ("+ranges[1].AnswerRange+")", 
                                         "A3 ("+ranges[2].AnswerRange+")", 
                                         "A4 ("+ranges[3].AnswerRange+")", 
@@ -93,27 +131,53 @@ export default class BtnDirector extends React.Component{
                                         "A7 ("+ranges[6].AnswerRange+")", 
                                         "A8 ("+ranges[7].AnswerRange+")",
                                          "סכום ציונים", "ציון אינטואטיבי"]];
+                        var exceptional_data = [["שם סטודנט","ת.ז. סטודנט", "שם מדריך", "A1 ("+ranges[0].AnswerRange+")",
+                                        "A2 ("+ranges[1].AnswerRange+")", 
+                                        "A3 ("+ranges[2].AnswerRange+")", 
+                                        "A4 ("+ranges[3].AnswerRange+")", 
+                                        "A5 ("+ranges[4].AnswerRange+")", 
+                                        "A6 ("+ranges[5].AnswerRange+")", 
+                                        "A7 ("+ranges[6].AnswerRange+")", 
+                                        "A8 ("+ranges[7].AnswerRange+")",
+                                        "סכום ציונים", "ציון אינטואטיבי"]];
                         var guide_table = response.data.guide_table
                         var student_table = response.data.student_table
                         for(var i=0;i<student_table.length;i+=2){
-                            var row=[student_table[i].name, student_table[i].id]
+                            var row =[student_table[i].name, student_table[i].id, guide_table[i].name]
+                            var exceptional_row = [student_table[i].name, student_table[i].id, guide_table[i].name]
                             var curr_student = student_table[i+1]
-                            var curr_guide = guide_table[i/2].guide
-                            
+                            var curr_guide = guide_table[i+1]
+
                             var factor = 1
+                            var sumStudentAnswers = 0
                             for(var j=1, k=0;j<curr_student.student.length;j++, k++){
                                 if(j == 4)
                                     j++
                                 if(k < ranges.length)
                                     factor = ranges[k].AnswerRange/10
-                                row.push(Math.floor((curr_student.student[j].AnswerNum)*factor) +':' +curr_guide[k].AnswerNum)
+                                sumStudentAnswers += parseInt((curr_student.student[j].AnswerNum)*factor)
+                                row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
+                                exceptional_row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                             }
-                            row.push(curr_guide[k+1].AnswerNum)
-                            row.push(curr_guide[k].AnswerNum)
+                            var sumAGuidenswers = curr_guide.guide[k+1].AnswerNum
+                            row.push(sumAGuidenswers + ':' + sumStudentAnswers)
+                            row.push(curr_guide.guide[k].AnswerNum)
+                            exceptional_row.push(sumAGuidenswers + ':' + sumStudentAnswers)
+                            exceptional_row.push(curr_guide.guide[k].AnswerNum)
                             data.push(row)
+                            if(table_type == "exceptional_events"){
+                                if(gap == ''){
+                                    alert("הכנס ערך להגדרת הטווח")
+                                    return
+                                }
+                                else if(Math.abs(sumStudentAnswers - sumAGuidenswers) >= gap)
+                                    exceptional_data.push(exceptional_row)
+                            }
+                            if(table_type == "show_all")
+                                callback (data)
+                            else
+                                callback(exceptional_data)
                         }
-                        this.setState({full_table:data})
-                        // console.log('full_table: ', this.state.full_table)
                     }
                 })();
             }
@@ -162,6 +226,27 @@ export default class BtnDirector extends React.Component{
                         </tbody>
             </Table></div>)
         }
+        var exception_table = null
+        if(this.state.exception_table!==''){
+            if(this.state.exception_table.length <= 1)
+                exception_table =  <label>לא נמצאו ארועים חריגים בטווח {this.state.gap}</label>
+            else{
+                exception_table = (<div><Table dir="rtl" id = "table" >
+                {/* // striped bordered hover> */}
+                
+                            <tbody>
+                            {
+                                    this.state.exception_table.map((row,i) =>{
+                                        if(i == 0)
+                                            return <tr key={i}>{row.map((num,j)=><th key={j}>{num}</th>)}</tr>
+                                        else
+                                        return <tr key={i}>{row.map((num,j)=><td key={j}>{num}</td>)}</tr>
+                                    })
+                            }
+                            </tbody>
+                </Table><CSVLink data={this.state.exception_table} >שמור כקובץ אקסל</CSVLink></div>)
+            }
+        }
 
         return(
             <div dir="rtl">
@@ -171,7 +256,13 @@ export default class BtnDirector extends React.Component{
                 <div>{coursesList}</div>
                 <input type="number" step="1" min={1} max={10} value={this.state.labNum} onChange={this.setLabNum.bind(this)} />
                 <p/><button onClick={this.show_all_questionnaires.bind(this)}>צפיה בכל השאלונים</button><p/>
-                <div>{full_table}</div>
+                {this.state.show_full_table && <div>{full_table}
+                    <CSVLink data={this.state.full_table} >שמור כקובץ אקסל</CSVLink>
+                </div>}
+                <label>הגדר טווח לאירוע חריג</label><input value = {this.state.gap} onChange={this.update_gap.bind(this)}></input>
+                <button onClick={this.show_exceptional_events.bind(this)}>אירועים חריגים</button><p/>
+                {this.state.show_exception_table &&<div><div>{exception_table}</div>
+                </div>}
                 <div className="btn-sign-out">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>
                     <Link to="/" color="gray">התנתק</Link><p/>
