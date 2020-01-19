@@ -1,5 +1,6 @@
 import React, {Component} from "react"
 import {Router} from "react-router-dom";
+import './BtnAdnim.css'
 import {Link, Redirect} from "react-router-dom";
 import axios from "axios";
 import readXlsxFile from 'read-excel-file';
@@ -23,29 +24,72 @@ export default class BtnAdmin extends React.Component{
             loggedIn: loggedIn,
             fetched: false,
             fetched_courses:false,
-            show_add_questionnaire:false
+            show_add_students:false,
+            show_add_guides:false,
+            show_add_s_questionnaire:false,
+            show_add_g_questionnaire:false
         }
         // localStorage.setItem("token", null)
         this.clickCourse = this.clickCourse.bind(this)
-        this.clickAddQuestionnaire = this.clickAddQuestionnaire.bind(this)
+        this.clickAddStudentQuestionnaire = this.clickAddStudentQuestionnaire.bind(this)
+        this.clickAddGuideQuestionnaire = this.clickAddGuideQuestionnaire.bind(this)
+        this.pushStudentsOrGuidesToDB = this.pushStudentsOrGuidesToDB.bind(this)
         this.pushStudentQuestionnaireToDB = this.pushStudentQuestionnaireToDB.bind(this)
         this.pushGuideQuestionnaireToDB = this.pushGuideQuestionnaireToDB.bind(this)
     }
 
-    clickAddQuestionnaire(){
-        this.setState((currentState) => ({show_add_questionnaire: !currentState.show_add_questionnaire}))
+    clickAddStudentQuestionnaire(){
+        this.setState({show_add_s_questionnaire:true})
     }
 
-    fileChanged=(e)=>{
+    clickAddGuideQuestionnaire(){
+        this.setState({show_add_g_questionnaire:true})
+    }
+
+    clickAddStudents(){
+        this.setState({show_add_students:true})
+    }
+
+    clickAddGuides(){
+        this.setState({show_add_guides:true})
+    }
+
+    loadStudentQuestionnaire=(e)=>{
         readXlsxFile(e.target.files[0]).then(rows=>{
             var only_questions = {}
             for(var i=0;i<rows.length-1;i++)
                 if(i%2 !==0)//skiping on comment rows
                     only_questions[Math.floor(i/2)] = rows[i][0].substring(2,rows[i][0].length)//adding property to object in format:{i:"question"}
             
-            this.setState({questions: only_questions})
+            this.setState({student_questions: only_questions})
         })
         
+    }
+
+    pushStudentQuestionnaireToDB(e){
+        if(!this.state.chosen_course){
+            alert('please select course')
+            return
+        }
+        if(!this.state.student_questions){
+            alert('please upload file')
+            return
+        }
+        (async ()=> {
+            const response = await axios.post(
+                '/push_student_qustionnaire_to_db',
+                { questions: this.state.student_questions, CourseCode: this.state.chosen_course.course_code},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data.code === 'ER_DUP_ENTRY')//checking if course already has questionnaire
+                alert('course already has a questionnaire')
+              else if(response.data === 'Failed')
+                alert("error saving questionnaire")
+              else{
+                alert("questionnaire inserted")
+                this.setState({show_add_s_questionnaire:false})
+              }
+        })();
     }
 
     loadGuideQuestionnaire=(e)=>{
@@ -91,56 +135,73 @@ export default class BtnAdmin extends React.Component{
                 alert('course already has a questionnaire')
               else if(response.data === 'Failed')
                 alert("error saving questionnaire")
-              else
+              else{
                 alert("questionnaire inserted")
-        })();
-    }
-
-    pushStudentQuestionnaireToDB(e){
-        if(!this.state.chosen_course){
-            alert('please select course')
-            return
-        }
-        if(!this.state.questions){
-            alert('please upload file')
-            return
-        }
-        (async ()=> {
-            const response = await axios.post(
-                '/push_student_qustionnaire_to_db',
-                { questions: this.state.questions, CourseCode: this.state.chosen_course.course_code},
-                { headers: { 'Content-Type': 'application/json' } }
-              )
-              if(response.data.code === 'ER_DUP_ENTRY')//checking if course already has questionnaire
-                alert('course already has a questionnaire')
-              else if(response.data === 'Failed')
-                alert("error saving questionnaire")
-              else
-                alert("questionnaire inserted")
+                this.setState({show_add_g_questionnaire:false})
+              }
         })();
     }
 
     loadStudentsOrGuides=(e)=>{
+        var type = e.target.id
         readXlsxFile(e.target.files[0]).then(rows=>{
-            var students = []
-            for(var i=1;i<rows.length-1;i++){
-                students.push(rows[i])
+            var users = []
+            for(var i=1;i<rows.length;i++){
+                users.push(rows[i])
+            }
+            console.log("users: ", users, " type: ", type)
+            if(type == "students")
+                this.setState({students:users})
+            else
+                this.setState({guides:users})
+        })
+    }
+
+    pushStudentsOrGuidesToDB(e){
+        if(e.target.id == "students"){
+            if(!this.state.students){
+                alert("please upload file")
+                return
             }
             (async ()=> {
                 console.log(e.target.id)
                 const response = await axios.post(
                     '/load_students',
-                    { students: students},
+                    { students: this.state.students},
                     { headers: { 'Content-Type': 'application/json' } }
-                  )
-                  if(response.data.code === 'ER_DUP_ENTRY')//making sure not loading doubles
+                )
+                if(response.data.code === 'ER_DUP_ENTRY')//making sure not loading doubles
                     alert('duplicates in student file')
-                  else if(response.data === 'Failed')
+                else if(response.data === 'Failed')
                     alert("error loading students")
-                  else
+                else{
                     alert("students loaded")
+                    this.setState({show_add_students:false})
+                }
             })();
-        })
+        }
+        else{
+            if(!this.state.guides){
+                alert("please upload file")
+                return
+            }
+            (async ()=> {
+                console.log("guides: ", this.state.guides)
+                const response = await axios.post(
+                    '/load_guides',
+                    { guides: this.state.guides},
+                    { headers: { 'Content-Type': 'application/json' } }
+                )
+                if(response.data.code === 'ER_DUP_ENTRY')//making sure not loading doubles
+                    alert('duplicates in guide file')
+                else if(response.data === 'Failed')
+                    alert("error loading guides")
+                else{
+                    alert("guides loaded")
+                    this.setState({show_add_guides:false})
+                }
+            })();
+        }
     }
 
     get_courses_list(){
@@ -202,19 +263,38 @@ export default class BtnAdmin extends React.Component{
                     <h1>שלום {this.state.admin_fname} {this.state.admin_lname} - מנהל</h1>
                     <p/>
                 </div>
-                <button onClick={this.clickAddQuestionnaire.bind(this)}>הוסף שאלון</button>
-                {this.state.show_add_questionnaire && <div>
-                    <div>{coursesList}</div>
-                    <label>טעינת שאלון סטודנט למערכת:</label>
-                    <input type="file" accept=".xlsx" onChange={this.fileChanged}/>
-                    <button onClick={this.pushStudentQuestionnaireToDB.bind(this)}>טעינה</button>
 
-                    <p/><label>טעינת שאלון מדריך למערכת:</label>
+                <p/><button onClick={this.clickAddStudents.bind(this)}>טעינת סטודנטים למערכת</button><p/>
+                {this.state.show_add_students && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_students:false})}>x</button></div>
+                    <p/><label>בחר קובץ לטעינה</label>
+                    <input type="file" accept=".xlsx" id="students" onChange={this.loadStudentsOrGuides}/>
+                    <button id="students" onClick={this.pushStudentsOrGuidesToDB.bind(this)}>טעינה</button>
+                </div>}
+
+                <p/><button onClick={this.clickAddGuides.bind(this)}>טעינת מדריכים למערכת</button><p/>
+                {this.state.show_add_guides && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_guides:false})}>x</button></div>
+                    <p/><label>בחר קובץ לטעינה</label>
+                    <input type="file" accept=".xlsx" id="guides" onChange={this.loadStudentsOrGuides}/>
+                    <button id="guides" onClick={this.pushStudentsOrGuidesToDB.bind(this)}>טעינה</button>
+                </div>}
+
+                <button onClick={this.clickAddStudentQuestionnaire.bind(this)}>הוספת שאלון סטודנט</button><p/>
+                {this.state.show_add_s_questionnaire && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_s_questionnaire:false})}>x</button></div>
+                    <div>{coursesList}</div>
+                    <input type="file" accept=".xlsx" onChange={this.loadStudentQuestionnaire}/>
+                    <button onClick={this.pushStudentQuestionnaireToDB.bind(this)}>טעינה</button>
+                </div>}
+
+                <p/><button onClick={this.clickAddGuideQuestionnaire.bind(this)}>הוספת שאלון מדריך</button><p/>
+                {this.state.show_add_g_questionnaire && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_g_questionnaire:false})}>x</button></div>
+                    <div>{coursesList}</div>
                     <input type="file" accept=".xlsx" id="guides" onChange={this.loadGuideQuestionnaire}/>
                     <button onClick={this.pushGuideQuestionnaireToDB.bind(this)}>טעינה</button>
                 </div>}
-                <p/><label>טעינת סטודנטים למערכת:</label>
-                <input type="file" accept=".xlsx" id="students" onChange={this.loadStudents}/>
 
                 <div className="btn-sign-out">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>

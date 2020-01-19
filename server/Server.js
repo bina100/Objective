@@ -147,6 +147,34 @@ app.post('/userExist', function(req, res) {
     } 
   });
 
+    //-------------------------------------------------------------
+    app.post('/load_guides', function(req, res) {
+      // Get sent data.
+      var guides = req.body.guides//two dimention array
+      console.log("guides: ", guides)
+  
+      for(var i=0;i<guides.length;i++){//running over every guide in matrix
+        var sql = "INSERT INTO guides(FirstName, LastName, Username, Password) values('"+guides[i][0]+"','"+guides[i][1]+ "', '"+guides[i][2]+"', '"+guides[i][3]+"');"
+        console.log('query: ', sql)
+        var query = db.query(sql, function(err, result) {
+          // check result  
+          if(err){
+            console.log('err: ', err)
+            res.end(JSON.stringify(err))
+          }
+          else if(result === undefined){//if something went wrong while inserting
+            console.log("load_guides- failed..")
+            res.end('Failed');
+          }
+          else{
+            console.log("load_guides - success....")
+            res.end('Success');
+    
+          }
+        });
+      } 
+    });
+
   //-------------------------------------------------------------
   app.post('/push_student_qustionnaire_to_db', function(req, res) {
     // Get sent data.

@@ -23,7 +23,7 @@ export default class BtnDirector extends React.Component{
             fetched_courses:false,
             labNum:1,
             full_table:'',
-            exception_table:'',
+            exception_table:[],
             gap:'',
             show_full_table:false,
             show_exception_table:false
@@ -77,12 +77,15 @@ export default class BtnDirector extends React.Component{
         else{
             if(table_type == "show_all"){
                 this.setState({full_table:data})
-                this.setState((currentState) => ({show_full_table: !currentState.show_full_table}))
+                // this.setState((currentState) => ({show_full_table: !currentState.show_full_table}))
+                this.setState({show_full_table: true})
+
             }
             else{// exceptional events
-                this.setState({exception_table:data})
-                if(this.state.exception_table.length >1){
-                    this.setState((currentState) => ({show_exception_table: !currentState.show_exception_table}))
+                this.setState({show_exception_table: true})
+                if(data.length >1){
+                    this.setState({exception_table:data})
+                    // this.setState((currentState) => ({show_exception_table: !currentState.show_exception_table}))
                 }
             }
 
@@ -173,6 +176,8 @@ export default class BtnDirector extends React.Component{
                                 else if(Math.abs(sumStudentAnswers - sumAGuidenswers) >= gap)
                                     exceptional_data.push(exceptional_row)
                             }
+                            console.log("exceptional_data: ", exceptional_data)
+                            console.log("data: ", data)
                             if(table_type == "show_all")
                                 callback (data)
                             else
@@ -224,28 +229,26 @@ export default class BtnDirector extends React.Component{
                                 })
                         }
                         </tbody>
-            </Table></div>)
+            </Table><CSVLink data={this.state.full_table} >שמור כקובץ אקסל</CSVLink></div>)
         }
         var exception_table = null
-        if(this.state.exception_table!==''){
-            if(this.state.exception_table.length <= 1)
-                exception_table =  <label>לא נמצאו ארועים חריגים בטווח {this.state.gap}</label>
-            else{
-                exception_table = (<div><Table dir="rtl" id = "table" >
-                {/* // striped bordered hover> */}
-                
-                            <tbody>
-                            {
-                                    this.state.exception_table.map((row,i) =>{
-                                        if(i == 0)
-                                            return <tr key={i}>{row.map((num,j)=><th key={j}>{num}</th>)}</tr>
-                                        else
-                                        return <tr key={i}>{row.map((num,j)=><td key={j}>{num}</td>)}</tr>
-                                    })
-                            }
-                            </tbody>
-                </Table><CSVLink data={this.state.exception_table} >שמור כקובץ אקסל</CSVLink></div>)
-            }
+        if(this.state.exception_table.length<1){
+            exception_table =  <label>לא נמצאו ארועים חריגים בטווח {this.state.gap}</label>
+        }
+        else{
+            exception_table = (<div><Table dir="rtl" id = "table" >
+            
+                        <tbody>
+                        {
+                                this.state.exception_table.map((row,i) =>{
+                                    if(i == 0)
+                                        return <tr key={i}>{row.map((num,j)=><th key={j}>{num}</th>)}</tr>
+                                    else
+                                    return <tr key={i}>{row.map((num,j)=><td key={j}>{num}</td>)}</tr>
+                                })
+                        }
+                        </tbody>
+            </Table><CSVLink className="bottom-left-corner" data={this.state.exception_table} >שמור כקובץ אקסל</CSVLink></div>)
         }
 
         return(
@@ -256,12 +259,15 @@ export default class BtnDirector extends React.Component{
                 <div>{coursesList}</div>
                 <input type="number" step="1" min={1} max={10} value={this.state.labNum} onChange={this.setLabNum.bind(this)} />
                 <p/><button onClick={this.show_all_questionnaires.bind(this)}>צפיה בכל השאלונים</button><p/>
-                {this.state.show_full_table && <div>{full_table}
-                    <CSVLink data={this.state.full_table} >שמור כקובץ אקסל</CSVLink>
+                {this.state.show_full_table && <div className="follow-up-table">
+                    <button onClick={(e)=> this.setState({show_full_table:false})}>x</button>{full_table}
                 </div>}
+
                 <label>הגדר טווח לאירוע חריג</label><input value = {this.state.gap} onChange={this.update_gap.bind(this)}></input>
                 <button onClick={this.show_exceptional_events.bind(this)}>אירועים חריגים</button><p/>
-                {this.state.show_exception_table &&<div><div>{exception_table}</div>
+
+                {this.state.show_exception_table &&<div className="follow-up-table">
+                    <div><button onClick={(e)=> this.setState({show_exception_table:false})}>x</button>{exception_table}</div>
                 </div>}
                 <div className="btn-sign-out">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>
