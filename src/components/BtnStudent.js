@@ -59,9 +59,10 @@ export default class BtnStudent extends React.Component{
                 alert("student not signed to any course")
               else{
                 var coursesNamesArr = response.data.courses_names.split(",")// storing couses names in array
-                // var coursesCodesArr = response.data.courses_codes.split(",")// storing couses names in array
                 this.setState({courses_names: coursesNamesArr})
-                this.setState({courses_codes: JSON.parse(response.data.courses_id)})//array of objects
+                this.setState({courses_codes:JSON.parse(response.data.courses_id)
+                })//array of objects
+                console.log("courses: ", this.state.courses_names, " codes: ", this.state.courses_codes)
             }
         })();
     }

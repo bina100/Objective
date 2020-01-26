@@ -21,7 +21,8 @@ export default class BtnGuide extends React.Component{
             fetched: false,
             questions:null,
             questionnaire_table:null,
-            saveQestionnaire:false
+            saveQestionnaire:false,
+            lab_num:1
         }
         this.answerRanges = []
         this.showCourses()
@@ -100,15 +101,20 @@ export default class BtnGuide extends React.Component{
         (async ()=> {
             const response = await axios.post(
                 '/returns_students_per_guide_and_lab',
-                { course: course},
+                { course: course, LabNum:this.state.lab_num},//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 { headers: { 'Content-Type': 'application/json' } }
               )
               if(response.data === 'Failed')
                 alert("err returns_students_per_guide_and_lab")
+            //   else if(response.data === "not_time")
+            //     alert("no ")
               else{
                   if(true){
-                    students = response.data
                     console.log(response.data)
+                    // var res = JSON.parse(response.data)
+                    // console.log("res: ", res)
+                    students = response.data[0]
+                    this.setState({lab_name:response.data[1]})
                   }
 
                 // fetching guide questionnaire
@@ -164,6 +170,7 @@ export default class BtnGuide extends React.Component{
               else{
                 this.setState({showQuestionnaire:false})
                 this.setState({saveQestionnaire:true})
+                this.setState({lab_num:null})
                }
         })();
     }
@@ -175,6 +182,9 @@ export default class BtnGuide extends React.Component{
         }
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
+        var lab_name = null
+        if(this.state.lab_name)
+            lab_name = this.state.lab_name
 
         var coursesList = null
         if(this.state.courses_names && this.state.courses_codes){
@@ -211,6 +221,7 @@ export default class BtnGuide extends React.Component{
                     <h1>שלום {this.state.user_fname} {this.state.user_lname}</h1>
                 </div>
                 <div>{coursesList}</div>{this.state.questions}
+                {lab_name}
                 {this.state.showQuestionnaire && <div><div>{full_table}</div>
                 <button type="button"
                 className="save-btn"

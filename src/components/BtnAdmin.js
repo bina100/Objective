@@ -27,15 +27,21 @@ export default class BtnAdmin extends React.Component{
             show_add_students:false,
             show_add_guides:false,
             show_add_s_questionnaire:false,
-            show_add_g_questionnaire:false
+            show_add_g_questionnaire:false,
+            show_add_labs:false,
+            show_add_scheduling:false
         }
         // localStorage.setItem("token", null)
         this.clickCourse = this.clickCourse.bind(this)
         this.clickAddStudentQuestionnaire = this.clickAddStudentQuestionnaire.bind(this)
         this.clickAddGuideQuestionnaire = this.clickAddGuideQuestionnaire.bind(this)
+        this.clickAddLabs = this.clickAddLabs.bind(this)
+        this.clickAddScheduling = this.clickAddScheduling.bind(this)
         this.pushStudentsOrGuidesToDB = this.pushStudentsOrGuidesToDB.bind(this)
         this.pushStudentQuestionnaireToDB = this.pushStudentQuestionnaireToDB.bind(this)
         this.pushGuideQuestionnaireToDB = this.pushGuideQuestionnaireToDB.bind(this)
+        this.pushLabsToDB = this.pushLabsToDB.bind(this)
+        this.pushSchedulingsToDB = this.pushSchedulingsToDB.bind(this)
     }
 
     clickAddStudentQuestionnaire(){
@@ -54,6 +60,14 @@ export default class BtnAdmin extends React.Component{
         this.setState({show_add_guides:true})
     }
 
+    clickAddLabs(){
+        this.setState({show_add_labs:true})
+    }
+
+    clickAddScheduling(){
+        this.setState({show_add_scheduling:true})
+    }
+    //--------- student questionnaire--------------------------------------
     loadStudentQuestionnaire=(e)=>{
         readXlsxFile(e.target.files[0]).then(rows=>{
             var only_questions = {}
@@ -91,7 +105,7 @@ export default class BtnAdmin extends React.Component{
               }
         })();
     }
-
+    //--------- guide questionnaire--------------------------------------
     loadGuideQuestionnaire=(e)=>{
         readXlsxFile(e.target.files[0]).then(rows=>{
             alert('hi')
@@ -142,6 +156,64 @@ export default class BtnAdmin extends React.Component{
         })();
     }
 
+     //--------- labs --------------------------------------
+     loadLabs=(e)=>{
+        readXlsxFile(e.target.files[0]).then(rows=>{
+            this.setState({labs: rows.slice(1, rows.length)})
+        })
+    }
+
+    pushLabsToDB(e){
+        if(!this.state.labs){
+            alert('please upload file')
+            return
+        }
+        (async ()=> {
+            const response = await axios.post(
+                '/load_labs',
+                { labs: this.state.labs},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data.code === 'ER_DUP_ENTRY')//checking if there are doubles
+                alert('duplicates in lab file')
+              else if(response.data === 'Success'){
+                alert("labs file inserted")
+                this.setState({show_add_labs:false})
+              }
+              else
+                alert("error loading labs")
+        })();
+    }
+
+    //--------- scheduling --------------------------------------
+    loadScheduling=(e)=>{
+    readXlsxFile(e.target.files[0]).then(rows=>{
+        this.setState({schedulings: rows.slice(1, rows.length)})
+    })
+}
+
+pushSchedulingsToDB(e){
+    if(!this.state.schedulings){
+        alert('please upload file')
+        return
+    }
+    (async ()=> {
+        const response = await axios.post(
+            '/load_schedulings',
+            { schedulings: this.state.schedulings},
+            { headers: { 'Content-Type': 'application/json' } }
+          )
+          if(response.data.code === 'ER_DUP_ENTRY')//checking if there are doubles
+            alert('duplicates in schedulings file')
+          else if(response.data === 'Success'){
+            alert("schedulings file inserted")
+            this.setState({show_add_scheduling:false})
+          }
+          else
+            alert("error loading schedulings")
+    })();
+}
+    //--------- students and guides--------------------------------------
     loadStudentsOrGuides=(e)=>{
         var type = e.target.id
         readXlsxFile(e.target.files[0]).then(rows=>{
@@ -294,6 +366,20 @@ export default class BtnAdmin extends React.Component{
                     <div>{coursesList}</div>
                     <input type="file" accept=".xlsx" id="guides" onChange={this.loadGuideQuestionnaire}/>
                     <button onClick={this.pushGuideQuestionnaireToDB.bind(this)}>טעינה</button>
+                </div>}
+
+                <p/><button onClick={this.clickAddLabs.bind(this)}>טעינת מעבדות</button><p/>
+                {this.state.show_add_labs && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_labs:false})}>x</button></div>
+                    <input type="file" accept=".xlsx" onChange={this.loadLabs}/>
+                    <button onClick={this.pushLabsToDB.bind(this)}>טעינה</button>
+                </div>}
+
+                <p/><button onClick={this.clickAddScheduling.bind(this)}>טעינת שיבוצים</button><p/>
+                {this.state.show_add_scheduling && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_add_scheduling:false})}>x</button></div>
+                    <input type="file" accept=".xlsx" onChange={this.loadScheduling}/>
+                    <button onClick={this.pushSchedulingsToDB.bind(this)}>טעינה</button>
                 </div>}
 
                 <div className="btn-sign-out">

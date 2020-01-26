@@ -83,10 +83,11 @@ export default class BtnDirector extends React.Component{
             }
             else{// exceptional events
                 this.setState({show_exception_table: true})
-                if(data.length >1){
+                if(data.length >1)
                     this.setState({exception_table:data})
-                    // this.setState((currentState) => ({show_exception_table: !currentState.show_exception_table}))
-                }
+                else
+                    this.setState({exception_table:[]})
+
             }
 
         }
@@ -216,9 +217,7 @@ export default class BtnDirector extends React.Component{
         }
         var full_table = null
         if(this.state.full_table!==''){
-            full_table = (<div><Table dir="rtl" id = "table" >
-            {/* // striped bordered hover> */}
-            
+            full_table = (<div><Table dir="rtl" id = "table" >            
                         <tbody>
                         {
                                 this.state.full_table.map((row,i) =>{

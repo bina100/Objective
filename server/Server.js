@@ -41,9 +41,10 @@ function getCurrentDateAndTime(){
 //-------------------------------------------------------------
 function getLabDetails(course_code, semester, callback) {
   // var DateTime = getCurrentDateAndTime()
-  var DateTime = '2008-12-19 16:00:00'
-
-  var sql = "SELECT LabCode, LabNum, LabName from labs where DateTime = '"+DateTime+"' and CourseCode = "+course_code+" and Semester = "+semester+";"
+  // var DateTime = '2008-12-19 16:00:00'
+  var DateTime = '2020-01-23 15:40:00'
+  
+  var sql = "SELECT LabCode, LabNum from labs where DateTime = '"+DateTime+"' and CourseCode = "+course_code+" and Semester = "+semester+";"
   console.log('sql: ', sql)
   var query = db.query(sql, (err, result) => {
     // check result  
@@ -54,6 +55,8 @@ function getLabDetails(course_code, semester, callback) {
       console.log("return_lab_code- failed..")
       callback('Failed')
     }
+    if(result === [])
+      callback(-1)
     else{
       console.log('lab code: ', result)
       callback(result[0])
@@ -331,6 +334,59 @@ app.post('/userExist', function(req, res) {
   });
 
   //-------------------------------------------------------------
+  app.post('/load_labs', function(req, res) {
+    // Get sent data.
+    var labs = req.body.labs//matrix
+    console.log("labs: ", labs)
+    for(var i=0;i<labs.length;i++){//running over every lab in array
+      var sql = "insert into labs(LabCode, LabNum, DateTime, CourseCode, Semester) values("+labs[i][0]+", "+labs[i][1]+", "+labs[i][2]+", "+labs[i][3]+", "+labs[i][4]+");"
+      console.log('query: ', sql)
+      var query = db.query(sql, function(err, result) {
+        // check result  
+        if(err){
+          console.log('err: ', err)
+          res.end(JSON.stringify(err))
+        }
+        else if(result === undefined){//if something went wrong while inserting
+          console.log("load_labs- failed..")
+          res.end('Failed');
+        }
+        else{
+          console.log("load_labs - success....")
+          res.end('Success');
+
+        }
+      });
+    } 
+  });
+
+//-------------------------------------------------------------
+  app.post('/load_schedulings', function(req, res) {
+    // Get sent data.
+    var schedulings = req.body.schedulings//matrix
+    for(var i=0;i<schedulings.length;i++){//running over every schedule in matrix
+      var sql = "insert into scheduling(scheduleCode, StudentCode, GuideCode, LabCode, LabName) values("+schedulings[i][0]+", "+schedulings[i][1].toString()+", "+schedulings[i][2].toString()+", "+schedulings[i][3]+", '"+schedulings[i][4]+"');"
+      console.log('query: ', sql)
+      var query = db.query(sql, function(err, result) {
+        // check result  
+        if(err){
+          console.log('err: ', err)
+          res.end(JSON.stringify(err))
+        }
+        else if(result === undefined){//if something went wrong while inserting
+          console.log("load_schedulings- failed..")
+          res.end('Failed');
+        }
+        else{
+          console.log("load_schedulings - success....")
+          res.end('Success');
+
+        }
+      });
+    } 
+  });
+
+  //-------------------------------------------------------------
   app.post('/return_course_data_per_user', function(req, res) {
     var course_name_arr = []
     var count_course // in order to send a response only after getting all queries results
@@ -351,7 +407,7 @@ app.post('/userExist', function(req, res) {
       }
       else{
         for(var i = 0; i < result1.length; i++){
-          var code_course = 'select CourseCode, Semester from Labs where LabCode = ' + result1[i].LabCode;
+          var code_course = 'select distinct CourseCode, Semester from Labs where LabCode = ' + result1[i].LabCode;
           // Do a MySQL query.
           var query_course_code = db.query(code_course, function(err, result2) {
             if(result2.length === 0){//if query failed
@@ -372,7 +428,17 @@ app.post('/userExist', function(req, res) {
                   course_name_arr.push(result3[0].CourseName)//adding course to aourses array
                   count_course -- //counting how many results have returned
                   if(count_course === 0){// if all data was returned
-                    res.end(JSON.stringify({courses_names:course_name_arr.toString(), courses_id:JSON.stringify(course_id)}))// returning string of studet's courses to client
+                    // removing duplicates
+                    var distinct_coursesNamesArr = []
+                    var count_dup = 0 // how many items were deleted
+                    for(var i=0; i<course_name_arr.length;i++){
+                      if(!distinct_coursesNamesArr.includes(course_name_arr[i])){
+                          distinct_coursesNamesArr.push(course_name_arr[i])
+                          course_id = course_id.splice(count_dup-i, 1)// removing course code from codes array accordingly
+                          count_dup ++
+                      }
+                    }
+                    res.end(JSON.stringify({courses_names:distinct_coursesNamesArr.toString(), courses_id:JSON.stringify(course_id)}))// returning string of studet's courses to client
                   }
                 }
               });
@@ -523,6 +589,8 @@ app.post('/userExist', function(req, res) {
       if (err) {
         console.log(err);
       }
+      else if(-1)
+        res.end("not_time")
       else {
         console.log("lab details: ",data)
         labNum = data.LabNum
@@ -754,17 +822,23 @@ app.post('/returns_students_per_guide_and_lab', function(req, res) {
   if(true){
     var course = req.body.course
     var labCode
-    console.log('CourseCode: ', course.CourseCode)
+    console.log('CourseCode: ', course)
   }
-
-  getLabDetails(course.CourseCode, course.Semester, function (data, err) {
-    if (err) {
-      console.log(err);
+  var return_lab_code = 'SELECT LabCode from labs where LabNum = '+req.body.LabNum+' and CourseCode = "'+course.CourseCode+'" and Semester = '+course.Semester+';'
+  // Do a MySQL query.
+  console.log('sql: ', return_lab_code)
+  var query = db.query(return_lab_code, function(err, res_lab_code) {
+    // check result
+    if(err){
+      console.log('err: ', err)
+      res.end(JSON.stringify(err))
     }
-    else {
-      console.log("lab details: ",data, ", ", data.LabNum)
-      labCode = data.LabCode
-      var return_student_codes = 'SELECT StudentCode from scheduling where GuideCode = "'+user_id+'" and LabCode = '+labCode+';'
+    else if(res_lab_code.length === 0){//if student doesn't exist in the system
+      console.log("return_students - failed..")
+      res.end('Failed');
+    }
+    else{
+      var return_student_codes = 'SELECT StudentCode, LabName from scheduling where GuideCode = "'+user_id+'" and LabCode = '+res_lab_code[0].LabCode+';'
       // Do a MySQL query.
       console.log('sql: ', return_student_codes)
       var query = db.query(return_student_codes, function(err, res_students) {
@@ -778,6 +852,7 @@ app.post('/returns_students_per_guide_and_lab', function(req, res) {
           res.end('Failed');
         }
         else{
+          var LabName = res_students[0].LabName
           var count = res_students.length
           var studentsArr = []
           console.log("return_students: ", res_students[0])
@@ -797,7 +872,7 @@ app.post('/returns_students_per_guide_and_lab', function(req, res) {
                 studentsArr.push({FirstName:res_student_name[0].FirstName, LastName:res_student_name[0].LastName, Password: studentPwd})
                 count--
                 if(count === 0)
-                  res.end(JSON.stringify(studentsArr))
+                  res.end(JSON.stringify([studentsArr, LabName]))
               }
             });
           }
