@@ -115,6 +115,8 @@ export default class BtnDirector extends React.Component{
               )
               if(response.data === 'Failed')
                 alert("error loading table")
+              else if(response.data === 'MissingInformation')
+                alert("עוד לא הסתיים מפגש מעבדה זה")
               else{ // fetching answer ranges before building table
                 (async ()=> {
                     const response_ranges = await axios.post(
@@ -163,10 +165,10 @@ export default class BtnDirector extends React.Component{
                                 row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                                 exceptional_row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                             }
-                            var sumAGuidenswers = curr_guide.guide[k+1].AnswerNum
-                            row.push(sumAGuidenswers + ':' + sumStudentAnswers)
+                            var sumGuidenswers = curr_guide.guide[k].AnswerNum
+                            row.push(sumGuidenswers + ':' + sumStudentAnswers)
                             row.push(curr_guide.guide[k].AnswerNum)
-                            exceptional_row.push(sumAGuidenswers + ':' + sumStudentAnswers)
+                            exceptional_row.push(sumGuidenswers + ':' + sumStudentAnswers)
                             exceptional_row.push(curr_guide.guide[k].AnswerNum)
                             data.push(row)
                             if(table_type == "exceptional_events"){
@@ -174,7 +176,7 @@ export default class BtnDirector extends React.Component{
                                     alert("הכנס ערך להגדרת הטווח")
                                     return
                                 }
-                                else if(Math.abs(sumStudentAnswers - sumAGuidenswers) >= gap)
+                                else if(Math.abs(sumStudentAnswers - sumGuidenswers) >= gap)
                                     exceptional_data.push(exceptional_row)
                             }
                             console.log("exceptional_data: ", exceptional_data)

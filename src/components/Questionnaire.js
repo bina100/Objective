@@ -81,6 +81,7 @@ export default class Questionnaire extends React.Component{
                 {answers: answers, comments: this.state.comments, CourseName: this.props.courseName, CourseCode:this.props.courseCode, semester:this.props.courseSemester, user_type:this.props.user_type},
                 { headers: { 'Content-Type': 'application/json' } }
             )
+            console.log(response.data)
             if(response.data.code === 'ER_DUP_ENTRY')
                 alert("שאלון כבר מולא עי הסטודנט")
             if(response.data === 'Failed')
@@ -100,7 +101,7 @@ export default class Questionnaire extends React.Component{
                 questions_arr.push(<p key={"p"+i}/>, <div key={'q'+i}>{this.state.questions[i].QuestionNum}. {this.state.questions[i].Question}</div>)   
                 for(var j=1;j<11;j++){
                     questions_arr.push( <label key={"label"+i+"."+j}>{j}<Radio
-                            checked={this.state['selectedValue'+(i+1)] == j}
+                            checked={this.state['selectedValue'+(i+1)] === j}
                             onChange={this.handleChange.bind(this)}
                             value={j}
                             color="default"

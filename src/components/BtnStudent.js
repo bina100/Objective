@@ -25,7 +25,6 @@ export default class BtnStudent extends React.Component{
             questions:null,
             show_questionnaire:true,
             fetched_guides:false,
-            selectedCourse:{name:"", code:null}
         }
 
         this.showCourses()
@@ -59,9 +58,10 @@ export default class BtnStudent extends React.Component{
                 alert("student not signed to any course")
               else{
                 var coursesNamesArr = response.data.courses_names.split(",")// storing couses names in array
+                var coursesCodesArr = JSON.parse(response.data.courses_id)
                 this.setState({courses_names: coursesNamesArr})
-                this.setState({courses_codes:JSON.parse(response.data.courses_id)
-                })//array of objects
+                this.setState({courses_codes:coursesCodesArr})//array of objects
+                this.setState({selectedCourse:{name:coursesNamesArr[0], code:coursesCodesArr[0].CourseCode, semester:coursesCodesArr[0].Semester}})
                 console.log("courses: ", this.state.courses_names, " codes: ", this.state.courses_codes)
             }
         })();
@@ -95,8 +95,6 @@ export default class BtnStudent extends React.Component{
 
     showQuestionnaire(e){//shows the questionnaire for chosen course on screen
         this.setState({questions:<Questionnaire user_type={'students'} courseName={this.state.selectedCourse.name} courseCode={this.state.selectedCourse.code} courseSemester={this.state.selectedCourse.semester}></Questionnaire>})
-        // alert(this.state.show_courses_and_guides)
-        // alert(JSON.stringify(this.state.questions))
     }
 
     render(){
@@ -111,7 +109,7 @@ export default class BtnStudent extends React.Component{
             coursesList = this.state.courses_names.map((course, index) => {
             return(<option key={index+'course'} value={JSON.stringify({id:this.state.courses_codes[index], name:course})}>{course}</option>)
             })
-            coursesList.unshift(<option key="0" value=""></option>)
+            // coursesList.unshift(<option key="0" value=""></option>)
         }
 
         if(this.state.guides){

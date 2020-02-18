@@ -6,6 +6,8 @@ import { async } from "q";
 import Questionnaire from './Questionnaire';
 import './BtnGuide.css';
 import {Table} from 'reactstrap';
+import { FormControl } from "@material-ui/core";
+import Select from '@material-ui/core/Select';
 
 
 export default class BtnGuide extends React.Component{
@@ -22,11 +24,11 @@ export default class BtnGuide extends React.Component{
             questions:null,
             questionnaire_table:null,
             saveQestionnaire:false,
-            lab_num:1
+            labNum:1,
+            time:true
         }
         this.answerRanges = []
         this.showCourses()
-        this.showQuestionnaire = this.showQuestionnaire.bind(this)
         this.buildQuestionnaireTable = this.buildQuestionnaireTable.bind(this)
         this.setChosenInput = this.setChosenInput.bind(this)
         this.submitQuestionnaire = this.submitQuestionnaire.bind()
@@ -77,23 +79,23 @@ export default class BtnGuide extends React.Component{
                 alert("guide not signed to any course")
               else{
                 var coursesArr = response.data.courses_names.split(",")// storing couses names in array
+                var coursesCodesArr = JSON.parse(response.data.courses_id)
                 this.setState({courses_names: coursesArr})
-                this.setState({courses_codes: JSON.parse(response.data.courses_id)})//array of objects {code:x, semester:y}
+                this.setState({courses_codes: coursesCodesArr})//array of objects {code:x, semester:y}
             }
         })();
     }
 
-    showQuestionnaire(e){//shows the questionnaire for chosen course on screen
-        console.log("show", e.target.value, " questionnaire")
-        this.setState({questions:<Questionnaire user_type={'guides'} courseName={e.target.value}></Questionnaire>})
+    selectedCourse=(e)=>{
+        var course = JSON.parse(e.target.value)
+        this.setState({selectedCourse:{name:course.name, code:course.id.CourseCode, semester:course.id.Semester}})
     }
     
     buildQuestionnaireTable(e){
-        var students = null
-        var questions = null
-        var questionnaire_table = []
         if(true){
-            this.setState({showQuestionnaire:true})
+            var students = null
+            var questions = null
+            var questionnaire_table = []
             var course = JSON.parse(e.target.id)
             console.log("course: ", course)
         }
@@ -101,63 +103,67 @@ export default class BtnGuide extends React.Component{
         (async ()=> {
             const response = await axios.post(
                 '/returns_students_per_guide_and_lab',
-                { course: course, LabNum:this.state.lab_num},//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                { course: course},
                 { headers: { 'Content-Type': 'application/json' } }
-              )
-              if(response.data === 'Failed')
-                alert("err returns_students_per_guide_and_lab")
-            //   else if(response.data === "not_time")
-            //     alert("no ")
-              else{
-                  if(true){
-                    console.log(response.data)
-                    // var res = JSON.parse(response.data)
-                    // console.log("res: ", res)
-                    students = response.data[0]
-                    this.setState({lab_name:response.data[1]})
-                  }
-
-                // fetching guide questionnaire
-                (async ()=> {
-                    const response = await axios.post(
-                        '/return_guide_questionnaire',
-                        { CourseCode: course.CourseCode},
-                        { headers: { 'Content-Type': 'application/json' } }
-                    )
-                    if(response.data === 'Failed')
-                        alert("err return_guide_questionnaire")
-                    else{
-                        questions = response.data
-                        // building table
-                        var titles = []
-                        for(var i=0;i<response.data.length;i++){
-                            if(i!=10){
-                                titles.push(response.data[i].Question)
-                                this.answerRanges.push(response.data[i].AnswerRange)
-                            }
-                            else if(i==10)
-                                this.answerRanges.push(100)
-                        }
-                        questionnaire_table.push(titles)
-                        for(var i=0;i<students.length;i++){
-                            var row = []
-                            row.push(students[i].Password)
-                            row.push(students[i].LastName +" "+ students[i].FirstName)
-                            row.push(0,0,0,0,0,0,0,0,0)
-                            questionnaire_table.push(row)
-                        }
-                        this.setState({questionnaire_table:questionnaire_table})
-                        this.setState({course:course})
-
+                )
+                console.log("rs: ", response.data)
+                if(response.data === 'Failed')
+                    alert("err returns_students_per_guide_and_lab")
+                else if(response.data === "check_data")
+                    alert("מספר מעבדה לא תקין")
+                else if(response.data === "not_time"){
+                    this.setState({time:false})
+                }
+                else{
+                    this.setState({showQuestionnaire:true})
+                    console.log("students: ", response.data)
+                    this.setState({time:true})
+                    if(true){
+                        console.log(response.data)
+                        students = response.data[0]
+                        this.setState({lab_name:response.data[1]})
                     }
-                })();
-            }
-        })();
-    }
+
+                    // fetching guide questionnaire
+                    (async ()=> {
+                        const response = await axios.post(
+                            '/return_guide_questionnaire',
+                            { CourseCode: course.CourseCode},
+                            { headers: { 'Content-Type': 'application/json' } }
+                        )
+                        if(response.data === 'Failed')
+                            alert("err return_guide_questionnaire")
+                        else{
+                            questions = response.data
+                            // building table
+                            var titles = []
+                            for(var i=0;i<response.data.length;i++){
+                                if(i!==10){
+                                    titles.push(response.data[i].Question)
+                                    this.answerRanges.push(response.data[i].AnswerRange)
+                                }   
+                                else if(i===10)
+                                    this.answerRanges.push(100)
+                            }
+                            questionnaire_table.push(titles)
+                            for(var i=0;i<students.length;i++){
+                                var row = []
+                                row.push(students[i].Password)
+                                row.push(students[i].LastName +" "+ students[i].FirstName)
+                                row.push(0,0,0,0,0,0,0,0,0)
+                                questionnaire_table.push(row)
+                            }
+                            this.setState({questionnaire_table:questionnaire_table})
+                            this.setState({course:course})
+                        }   
+                    })();
+                }
+            })();
+        }
 
     submitQuestionnaire=(e)=>{
         (async ()=> {
-            // console.log("course: ", this.state.course.CourseCode)
+            console.log("table: ", this.state.questionnaire_table)
             const response = await axios.post(
                 '/push_filled_g_qustionnaire_to_db',
                 { table: this.state.questionnaire_table, course:this.state.course},
@@ -170,9 +176,18 @@ export default class BtnGuide extends React.Component{
               else{
                 this.setState({showQuestionnaire:false})
                 this.setState({saveQestionnaire:true})
-                this.setState({lab_num:null})
+                this.setState({LabNum:1})
                }
         })();
+    }
+
+    setLabNum(e){
+        if(e.target.value > 10)
+            this.setState({labNum:10})
+        else if(e.target.value < 2)
+            this.setState({labNum:1})
+        else
+            this.setState({labNum:e.target.value})
     }
 
 
@@ -182,6 +197,9 @@ export default class BtnGuide extends React.Component{
         }
         if(this.state.fetched === false)
             return <h2>Loading...</h2>
+        var time_alert = null
+        if(!this.state.time)
+            time_alert = <div>אין שאלון למילוי המתאים לקורס הנבחר ולשעה הנוכחית</div>
         var lab_name = null
         if(this.state.lab_name)
             lab_name = this.state.lab_name
@@ -189,9 +207,11 @@ export default class BtnGuide extends React.Component{
         var coursesList = null
         if(this.state.courses_names && this.state.courses_codes){
             coursesList = this.state.courses_names.map((course, index) => {
+            // return(<option key={index+'course'} value={JSON.stringify({id:this.state.courses_codes[index], name:course})} >{course}</option>)
             return(<div key={index}><button id={JSON.stringify(this.state.courses_codes[index])} value={course} onClick={this.buildQuestionnaireTable.bind(this)}>{course}</button></div>)
             })
         }
+
         var full_table = null
         if(this.state.questionnaire_table!==null){
             full_table = (<div><Table dir="rtl" id = "table" >            
@@ -220,7 +240,10 @@ export default class BtnGuide extends React.Component{
                 <div className="head-of-page">
                     <h1>שלום {this.state.user_fname} {this.state.user_lname}</h1>
                 </div>
-                <div>{coursesList}</div>{this.state.questions}
+                
+                {!this.state.saveQestionnaire && <div>{coursesList}</div>}
+                {time_alert}
+                {this.state.questions}
                 {lab_name}
                 {this.state.showQuestionnaire && <div><div>{full_table}</div>
                 <button type="button"
