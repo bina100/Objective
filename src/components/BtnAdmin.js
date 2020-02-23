@@ -24,12 +24,16 @@ export default class BtnAdmin extends React.Component{
             loggedIn: loggedIn,
             fetched: false,
             fetched_courses:false,
+            id:"000000000",
             show_add_students:false,
             show_add_guides:false,
             show_add_s_questionnaire:false,
             show_add_g_questionnaire:false,
             show_add_labs:false,
-            show_add_scheduling:false
+            show_add_scheduling:false,
+            show_delete_student:false,
+            show_delete_guide:false,
+            show_delete_director:false
         }
         // localStorage.setItem("token", null)
         this.clickCourse = this.clickCourse.bind(this)
@@ -37,11 +41,15 @@ export default class BtnAdmin extends React.Component{
         this.clickAddGuideQuestionnaire = this.clickAddGuideQuestionnaire.bind(this)
         this.clickAddLabs = this.clickAddLabs.bind(this)
         this.clickAddScheduling = this.clickAddScheduling.bind(this)
+        this.clickDeleteStudent = this.clickDeleteStudent.bind(this)
+        this.clickDeleteGuide = this.clickDeleteGuide.bind(this)
+        this.clickDeleteDirector = this.clickDeleteDirector.bind(this)
         this.pushStudentsOrGuidesToDB = this.pushStudentsOrGuidesToDB.bind(this)
         this.pushStudentQuestionnaireToDB = this.pushStudentQuestionnaireToDB.bind(this)
         this.pushGuideQuestionnaireToDB = this.pushGuideQuestionnaireToDB.bind(this)
         this.pushLabsToDB = this.pushLabsToDB.bind(this)
         this.pushSchedulingsToDB = this.pushSchedulingsToDB.bind(this)
+        this.deleteUser = this.deleteUser.bind(this)
     }
 
     clickAddStudentQuestionnaire(){
@@ -66,6 +74,18 @@ export default class BtnAdmin extends React.Component{
 
     clickAddScheduling(){
         this.setState({show_add_scheduling:true})
+    }
+
+    clickDeleteStudent(){
+        this.setState({show_delete_student:true})
+    }
+
+    clickDeleteGuide(){
+        this.setState({show_delete_guide:true})
+    }
+
+    clickDeleteDirector(){
+        this.setState({show_delete_director:true})
     }
     //--------- student questionnaire--------------------------------------
     loadStudentQuestionnaire=(e)=>{
@@ -187,32 +207,32 @@ export default class BtnAdmin extends React.Component{
 
     //--------- scheduling --------------------------------------
     loadScheduling=(e)=>{
-    readXlsxFile(e.target.files[0]).then(rows=>{
-        this.setState({schedulings: rows.slice(1, rows.length)})
-    })
-}
-
-pushSchedulingsToDB(e){
-    if(!this.state.schedulings){
-        alert('please upload file')
-        return
+        readXlsxFile(e.target.files[0]).then(rows=>{
+            this.setState({schedulings: rows.slice(1, rows.length)})
+        })
     }
-    (async ()=> {
-        const response = await axios.post(
-            '/load_schedulings',
-            { schedulings: this.state.schedulings},
-            { headers: { 'Content-Type': 'application/json' } }
-          )
-          if(response.data.code === 'ER_DUP_ENTRY')//checking if there are doubles
-            alert('duplicates in schedulings file')
-          else if(response.data === 'Success'){
-            alert("schedulings file inserted")
-            this.setState({show_add_scheduling:false})
-          }
-          else
-            alert("error loading schedulings")
-    })();
-}
+
+    pushSchedulingsToDB(e){
+        if(!this.state.schedulings){
+            alert('please upload file')
+            return
+        }
+        (async ()=> {
+            const response = await axios.post(
+                '/load_schedulings',
+                { schedulings: this.state.schedulings},
+                { headers: { 'Content-Type': 'application/json' } }
+            )
+            if(response.data.code === 'ER_DUP_ENTRY')//checking if there are doubles
+                alert('duplicates in schedulings file')
+            else if(response.data === 'Success'){
+                alert("schedulings file inserted")
+                this.setState({show_add_scheduling:false})
+            }
+            else
+                alert("error loading schedulings")
+        })();
+    }
     //--------- students and guides--------------------------------------
     loadStudentsOrGuides=(e)=>{
         var type = e.target.id
@@ -274,6 +294,25 @@ pushSchedulingsToDB(e){
                 }
             })();
         }
+    }
+
+    //-------------delete student------------------------------------------------------
+    deleteUser(e){
+        (async ()=> {
+            const response = await axios.post(
+                '/delete_user',
+                {id: this.state.id, user_type:e.target.id},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+              if(response.data === 'Failed')
+                alert("error deleting student")
+              else{
+                console.log("נמחק בהצלחה ", this.state.id, " :משתמש")
+                this.setState({show_delete_director:false})
+                this.setState({show_delete_guide:false})
+                this.setState({show_delete_student:false})
+            }
+        })();
     }
 
     get_courses_list(){
@@ -381,6 +420,37 @@ pushSchedulingsToDB(e){
                     <input type="file" accept=".xlsx" onChange={this.loadScheduling}/>
                     <button onClick={this.pushSchedulingsToDB.bind(this)}>טעינה</button>
                 </div>}
+{/* 
+                <p/><button onClick={this.clickDeleteStudent.bind(this)}>מחיקת סטודנט</button><p/>
+                {this.state.show_delete_student && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_delete_student:false})}>x</button></div>
+                    <input
+                        type="text"
+                        placeholder="תעודת זהות של סטודנט"
+                        onChange={e =>{this.setState({id:e.target.value})}}/>
+                    <button id="students" onClick={this.deleteUser.bind(this)}>מחיקה</button>
+                </div>}
+
+                <p/><button onClick={this.clickDeleteGuide.bind(this)}>מחיקת מדריך</button><p/>
+                {this.state.show_delete_guide && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_delete_guide:false})}>x</button></div>
+                    <input
+                        type="text"
+                        placeholder="תעודת זהות של מדריך"
+                        onChange={e =>{this.setState({id:e.target.value})}}/>
+                    <button id="guides" onClick={this.deleteUser.bind(this)}>מחיקה</button>
+                </div>}
+
+                <p/><button onClick={this.clickDeleteDirector.bind(this)}>מחיקת מנהל מעבדה</button><p/>
+                {this.state.show_delete_director && <div className="chosen-window">
+                    <div><button onClick={(e)=> this.setState({show_delete_director:false})}>x</button></div>
+                    <input
+                        type="text"
+                        placeholder="תעודת זהות של מנהל מעבדה"
+                        onChange={e =>{this.setState({id:e.target.value})}}/>
+                    <button id="director" onClick={this.deleteUser.bind(this)}>מחיקה</button>
+                </div>} */}
+
 
                 <div className="btn-sign-out">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>

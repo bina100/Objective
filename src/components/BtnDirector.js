@@ -127,6 +127,8 @@ export default class BtnDirector extends React.Component{
                       if(response.data === 'Failed')
                         alert("error loading ranges")
                       else{
+                        if(response.data.message)
+                            alert(response.data.return_message.message, " ", response.data.return_message.details)
                         var ranges = (response_ranges.data).slice(2, response_ranges.data.length-2)
                         var data = [["שם סטודנט","ת.ז. סטודנט", "שם מדריך", "A1 ("+ranges[0].AnswerRange+")",
                                         "A2 ("+ranges[1].AnswerRange+")", 
@@ -148,11 +150,17 @@ export default class BtnDirector extends React.Component{
                                         "סכום ציונים", "ציון אינטואטיבי"]];
                         var guide_table = response.data.guide_table
                         var student_table = response.data.student_table
-                        for(var i=0;i<student_table.length;i+=2){
-                            var row =[student_table[i].name, student_table[i].id, guide_table[i].name]
-                            var exceptional_row = [student_table[i].name, student_table[i].id, guide_table[i].name]
-                            var curr_student = student_table[i+1]
-                            var curr_guide = guide_table[i+1]
+                        var s=0, g=0
+                        while(s<student_table.length){
+                            if(student_table[s+1].student == undefined){
+                                s++
+                                g+=2
+                                continue
+                            }
+                            var row =[student_table[s].name, student_table[s].id, guide_table[g].name]
+                            var exceptional_row = [student_table[s].name, student_table[s].id, guide_table[g].name]
+                            var curr_student = student_table[s+1]
+                            var curr_guide = guide_table[g+1]
 
                             var factor = 1
                             var sumStudentAnswers = 0
@@ -161,7 +169,7 @@ export default class BtnDirector extends React.Component{
                                     j++
                                 if(k < ranges.length)
                                     factor = ranges[k].AnswerRange/10
-                                sumStudentAnswers += parseInt((curr_student.student[j].AnswerNum)*factor)
+                                sumStudentAnswers += parseInt((curr_student.student[j].AnswerNum)*factor)                                
                                 row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                                 exceptional_row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                             }
@@ -185,7 +193,9 @@ export default class BtnDirector extends React.Component{
                                 callback (data)
                             else
                                 callback(exceptional_data)
-                        }
+                            s+=2
+                            g+=2
+                        }//while
                     }
                 })();
             }
