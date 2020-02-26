@@ -1,0 +1,37 @@
+@import "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";
+
+.head-of-page{
+    font-size: 20px;
+    padding: 1%;
+    background-color: #808080;
+    color: white;
+}
+.btn-sign-out{
+    bottom: 5%;
+    font-size: 16px;
+    padding: 1%;
+}
+.fa-sign-out{
+    color: rgb(37, 124, 19);
+}
+#table{
+    margin: 10%;
+    text-align: center;
+    border-collapse: collapse;
+    border: 3px solid black;
+    width: 75%;
+}
+#table th{
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #808080;
+}
+#table td, #table tr{
+  border:1px solid black;
+  padding:8px;
+  border-bottom:1px solid black;
+}
+input[type='number'] {
+    -moz-appearance:textfield;
+}

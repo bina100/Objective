@@ -1,0 +1,22 @@
+@import "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";
+
+.head-of-page{
+    font-size: 20px;
+    padding: 1%;
+    background-color: #808080;
+    color: white;
+}
+.btn-sign-out{
+    bottom: 5%;
+    font-size: 16px;
+    padding: 1%;
+}
+.fa-sign-out{
+    color: rgb(37, 124, 19);
+}
+.chosen-window{
+    display:inline-block;
+    border:2px solid gray;
+    margin: 2%;
+    padding: 10px;
+}
