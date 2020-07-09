@@ -797,6 +797,29 @@ app.post('/push_student_qustionnaire_to_db', function (req, res) {
           }
         }
       });
+      //-------inserting answers----------------------
+      for (i = 1; i <= Object.keys(answers).length; i++) {//running over every property in object
+        console.log("student id: ", user_id)
+        var sql = "INSERT INTO student_questionnaire(Questionnaire_code, StudentCode, QuestionNum, AnswerNum, LabNum) values((SELECT Questionnaire_code from questionnaires where Course_code = (SELECT Course_code FROM Courses where CourseName = '" + CourseName + "')), '" + user_id + "', " + i + ", " + answers[i] + ", " + labNum + ");"
+        console.log("sql: ", sql)
+        var query = db.query(sql, function (err, result) {
+          // check result  
+          if (result === err) {
+            console.log('err: ', err)
+          }
+          if (result === undefined) {//if something went wrong while inserting
+            console.log("push_filled_qustionnaire_to_db- failed..")
+            res.end('Failed');
+          }
+          else {
+            console.log("push_filled_qustionnaire_to_db - success....")
+            success++
+            if (success == Object.keys(answers).length + 1) {
+              res.end('Success');
+            }
+          }
+        });
+      }
     }
     //---------------if not the first time--pushing questions into db--------------------------------
     else {
@@ -1548,5 +1571,4 @@ app.post('/returns_students_per_guide_and_lab', function (req, res) {
     }
   });
 });
-
 

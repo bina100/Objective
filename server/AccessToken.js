@@ -28,17 +28,6 @@ module.exports = class AccessToken {
     deleteOldUserToken(username) {
         // console.log("delete old user!!!")
         var query = 'delete from access_token where username = "'+username+'";'
-        // this.connection.query(query, function (err, result) {
-        //     // check result
-        //     console.log("delete token result: ", result)
-        //     if (err) {
-        //         callback({ success: false, error: err })
-        //     }
-        //     else {
-        //         console.log("deleteOldUserToken succeeded")
-        //         callback({ success: true})
-        //     }
-        // });
         return new Promise((resolve, reject) => {
             this.connection.query(query, function (err, result) {
                 // check result

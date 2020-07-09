@@ -191,11 +191,6 @@ export default class BtnDirector extends React.Component{
                         var student_table = response.data.student_table
                         var s=0, g=0
                         while(s<student_table.length){
-                            // if(student_table[s+1].student == undefined){
-                            //     s++
-                            //     g+=2
-                            //     continue
-                            // }
                             var row =[student_table[s].name, student_table[s].id, guide_table[g].name]
                             var exceptional_row = [student_table[s].name, student_table[s].id, guide_table[g].name]
                             var curr_student = student_table[s+1]
