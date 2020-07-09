@@ -26,12 +26,24 @@ export default class BtnDirector extends React.Component{
             exception_table:[],
             gap:'',
             show_full_table:false,
-            show_exception_table:false
+            show_exception_table:false,
+            redirect:false
         }
         this.clickCourse = this.clickCourse.bind(this)
         this.show_all_questionnaires = this.show_all_questionnaires.bind(this)
         this.show_exceptional_events = this.show_exceptional_events.bind(this)
         this.set_table = this.set_table.bind(this)
+        this.deleteToken = this.deleteToken.bind(this)
+    }
+
+    deleteToken(){
+        (async ()=> {
+            const response = await axios.post(
+                '/delete_token',
+                { username: this.user.username},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+        })();   
     }
 
     get_user_details(){
@@ -41,6 +53,10 @@ export default class BtnDirector extends React.Component{
                 { username: this.user.username, password: this.user.password, type: 'director'},
                 { headers: { 'Content-Type': 'application/json' } }
               )
+              if(response.data == 'OOT'){
+                alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                this.setState({redirect:true})
+              }
               this.state.user_fname = response.data.FirstName
               this.state.user_lname = response.data.LastName
               this.setState({fetched_name: true})
@@ -53,7 +69,11 @@ export default class BtnDirector extends React.Component{
                 '/return_all_courses',
                 { headers: { 'Content-Type': 'application/json' } }
               )
-              if(response.data === 'Failed')
+              if(response.data == 'OOT'){
+                alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                this.setState({redirect:true})
+              }
+              else if(response.data === 'Failed')
                 alert("error loading courses")
               else{
                 this.setState({fetched_courses: true})
@@ -113,18 +133,41 @@ export default class BtnDirector extends React.Component{
                 {course_code:this.state.chosen_course.course_code, semester:this.state.chosen_course.semester, course_name:this.state.chosen_course.course_name, lab_num: this.state.labNum},
                 { headers: { 'Content-Type': 'application/json' } }
               )
-              if(response.data === 'Failed')
+              console.log(response.data)
+              if(response.data == 'OOT'){
+                alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                this.setState({redirect:true})
+              }
+              else if(response.data === 'Failed')
                 alert("error loading table")
+              else if(response.data === 'MissingInformation')
+                alert("עוד לא הסתיים מפגש מעבדה זה")
               else{ // fetching answer ranges before building table
+                if(response.data.message1 && !response.data.message2){
+                    console.log("m1: ",response.data.message1 ,"m2:", response.data.message2)
+                    alert(" מדריך בעל תז: "+ response.data.message1.code+" לא מילא שאלון." +"\nתשובותיו יופיעו כאפסים")
+                }
+                else if(!response.data.message1 && response.data.message2){
+                    alert(" סטודנט בעל תז: "+ response.data.message2.code+" לא מילא שאלון." +"\nתשובותיו יופיעו כאפסים")
+                }
+                else if(response.data.message1 && response.data.message2){
+                    alert(" מדריך בעל תז: "+ response.data.message1.code+" לא מילא שאלון." +"\n סטודנט בעל תז: "+ response.data.message2.code+" לא מילא שאלון."+"\nתשובותיהם יופיעו כאפסים")
+                }
                 (async ()=> {
                     const response_ranges = await axios.post(
                         '/fetch_answer_ranges_per_g_q',
                         {CourseCode:this.state.chosen_course.course_code},
                         { headers: { 'Content-Type': 'application/json' } }
                       )
-                      if(response.data === 'Failed')
+                      if(response.data == 'OOT'){
+                        alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                        this.setState({redirect:true})
+                      }
+                      else if(response_ranges.data === 'Failed')
                         alert("error loading ranges")
                       else{
+                        if(response_ranges.data.message)
+                            alert(response_ranges.data.return_message.message, " ", response_ranges.data.return_message.details)
                         var ranges = (response_ranges.data).slice(2, response_ranges.data.length-2)
                         var data = [["שם סטודנט","ת.ז. סטודנט", "שם מדריך", "A1 ("+ranges[0].AnswerRange+")",
                                         "A2 ("+ranges[1].AnswerRange+")", 
@@ -146,44 +189,51 @@ export default class BtnDirector extends React.Component{
                                         "סכום ציונים", "ציון אינטואטיבי"]];
                         var guide_table = response.data.guide_table
                         var student_table = response.data.student_table
-                        for(var i=0;i<student_table.length;i+=2){
-                            var row =[student_table[i].name, student_table[i].id, guide_table[i].name]
-                            var exceptional_row = [student_table[i].name, student_table[i].id, guide_table[i].name]
-                            var curr_student = student_table[i+1]
-                            var curr_guide = guide_table[i+1]
+                        var s=0, g=0
+                        while(s<student_table.length){
+                            // if(student_table[s+1].student == undefined){
+                            //     s++
+                            //     g+=2
+                            //     continue
+                            // }
+                            var row =[student_table[s].name, student_table[s].id, guide_table[g].name]
+                            var exceptional_row = [student_table[s].name, student_table[s].id, guide_table[g].name]
+                            var curr_student = student_table[s+1]
+                            var curr_guide = guide_table[g+1]
 
                             var factor = 1
                             var sumStudentAnswers = 0
+                            var sumGuideAnswers = 0
                             for(var j=1, k=0;j<curr_student.student.length;j++, k++){
                                 if(j == 4)
                                     j++
                                 if(k < ranges.length)
                                     factor = ranges[k].AnswerRange/10
-                                sumStudentAnswers += parseInt((curr_student.student[j].AnswerNum)*factor)
+                                sumStudentAnswers += parseInt((curr_student.student[j].AnswerNum)*factor)                                
+                                sumGuideAnswers += parseInt(curr_guide.guide[k].AnswerNum)                                
                                 row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                                 exceptional_row.push(curr_guide.guide[k].AnswerNum  +':' +Math.floor((curr_student.student[j].AnswerNum)*factor))
                             }
-                            var sumAGuidenswers = curr_guide.guide[k+1].AnswerNum
-                            row.push(sumAGuidenswers + ':' + sumStudentAnswers)
-                            row.push(curr_guide.guide[k].AnswerNum)
-                            exceptional_row.push(sumAGuidenswers + ':' + sumStudentAnswers)
-                            exceptional_row.push(curr_guide.guide[k].AnswerNum)
+                            row.push(sumGuideAnswers + ':' + sumStudentAnswers)
+                            row.push(curr_guide.guide[k].AnswerNum)//intuitive sum given by guide
+                            exceptional_row.push(sumGuideAnswers + ':' + sumStudentAnswers)
+                            exceptional_row.push(curr_guide.guide[k].AnswerNum)//intuitive sum given by guide
                             data.push(row)
                             if(table_type == "exceptional_events"){
                                 if(gap == ''){
                                     alert("הכנס ערך להגדרת הטווח")
                                     return
                                 }
-                                else if(Math.abs(sumStudentAnswers - sumAGuidenswers) >= gap)
+                                else if(Math.abs(sumStudentAnswers - sumGuideAnswers) >= gap)
                                     exceptional_data.push(exceptional_row)
                             }
-                            console.log("exceptional_data: ", exceptional_data)
-                            console.log("data: ", data)
                             if(table_type == "show_all")
                                 callback (data)
                             else
                                 callback(exceptional_data)
-                        }
+                            s+=2
+                            g+=2
+                        }//while
                     }
                 })();
             }
@@ -200,7 +250,7 @@ export default class BtnDirector extends React.Component{
     }
 
     render(){
-        if(this.state.loggedIn === false){
+        if(this.state.loggedIn === false || this.state.redirect){
             return <Redirect to="/"/>
         }
         if(this.state.fetched_name === false)
@@ -211,7 +261,7 @@ export default class BtnDirector extends React.Component{
             var coursesList = null
             if(this.state.courses){
                 coursesList = this.state.courses.map((course, index) => {
-                return(<button key={index} id={JSON.stringify({code:course.Course_code, semester:course.Semester})} value={course.CourseName} onClick={this.clickCourse.bind()}>{course.CourseName}</button>)
+                return(<button className="course-btn" key={index} id={JSON.stringify({code:course.Course_code, semester:course.Semester})} value={course.CourseName} onClick={this.clickCourse.bind()}>{course.CourseName}</button>)
                 })
             }
         }
@@ -255,22 +305,53 @@ export default class BtnDirector extends React.Component{
                 <div className="head-of-page">
                     <h1>שלום  {this.state.user_fname} {this.state.user_lname}</h1>
                 </div>
-                <div>{coursesList}</div>
-                <input type="number" step="1" min={1} max={10} value={this.state.labNum} onChange={this.setLabNum.bind(this)} />
-                <p/><button onClick={this.show_all_questionnaires.bind(this)}>צפיה בכל השאלונים</button><p/>
+                <div className="select-course-btn">
+                    <div className="select-course-d">
+                    
+                    <p/>
+                    {/* <label id="title">בחר שם קורס ומספר מעבדה</label> */}
+                    <Table dir="rtl" className="table-select-course">
+                        <tbody>
+                            <tr key={3}>
+                                <td key={1}><label id="title">בחר שם קורס ומספר מעבדה</label></td>
+                                <td key={2}><div className="list-course">{coursesList}</div> </td>
+                                <td key={3}><input id="input-lab-num" type="number" step="1" min={1} max={10} value={this.state.labNum} onChange={this.setLabNum.bind(this)} /></td>
+                            </tr>    
+                        
+                        </tbody>
+                    </Table>
+                    </div>
+                <button id="btn-show" onClick={this.show_all_questionnaires.bind(this)}>צפיה בכל השאלונים</button>
+                
                 {this.state.show_full_table && <div className="follow-up-table">
                     <button onClick={(e)=> this.setState({show_full_table:false})}>x</button>{full_table}
                 </div>}
+                </div>
+                <div className="select-course-btn">
+                    <div className="select-course-d">
+                    <p/>
+                    <Table dir="rtl" className="table-select-course">
+                        <tbody>
+                            <tr key={3}>
+                                <td key={1}> <label id="title">הגדר טווח לאירוע חריג</label></td>
+                                <td key={2}><input id="input-exceptional-events" value = {this.state.gap} onChange={this.update_gap.bind(this)}></input></td>
+                            </tr>    
+                        
+                        </tbody>
+                    </Table>
+                    {/* <label id="title">הגדר טווח לאירוע חריג</label><input id="input-exceptional-events" value = {this.state.gap} onChange={this.update_gap.bind(this)}></input> */}
+                    </div>
 
-                <label>הגדר טווח לאירוע חריג</label><input value = {this.state.gap} onChange={this.update_gap.bind(this)}></input>
-                <button onClick={this.show_exceptional_events.bind(this)}>אירועים חריגים</button><p/>
-
+                    <button  id="btn-show" onClick={this.show_exceptional_events.bind(this)}>אירועים חריגים</button><p/>
+                </div>
+                <div className="space-director"></div>
                 {this.state.show_exception_table &&<div className="follow-up-table">
                     <div><button onClick={(e)=> this.setState({show_exception_table:false})}>x</button>{exception_table}</div>
                 </div>}
-                <div className="btn-sign-out">
+                <div className="btn-sign-out-d">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>
-                    <Link to="/" color="gray">התנתק</Link><p/>
+                    <Link to='/' color="gray" onClick = {this.deleteToken.bind(this)}>התנתק</Link><p/>
+                    {/* <Link to='/' color="gray">התנתק</Link><p/> */}
                 </div>
             </div>
         )

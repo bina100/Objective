@@ -1,10 +1,13 @@
 import React, {Component} from "react"
+
 //import {Router} from "react-router-dom";
 import axios from "axios";
 import {Redirect} from "react-router-dom";
 import BtnStudent from "./BtnStudent";
 import './Login.css';
 import { async } from "q";
+import imgLogo from "./College-Logo.png"
+import {Table} from 'reactstrap';
 export default class Login extends React.Component{
 
    constructor(props){
@@ -23,7 +26,6 @@ export default class Login extends React.Component{
        }
        this.role="";
        this.submitLogin = this.submitLogin.bind(this)
-
     }
 
         //Add New Error Object to the array {elm: msg}
@@ -149,62 +151,76 @@ export default class Login extends React.Component{
 
         return(  
             <div className="main-box" dir="rtl">
-                <div>
-                    <p/><h1 className="tytle">ברוכים הבאים לאתר המעבדות</h1><p/>
+                <div className="head">
+                    <Table dir="rtl" className="table1">
+                        <tbody>
+                        {      
+                            <tr key={2}>
+                                <td key={1}><h1 className="tytle">ברוכים הבאים לאתר המעבדות</h1></td> 
+                                <td key={2}><img src={imgLogo} className="logo" /></td> 
+                            </tr>  
+                             
+                        }
+                        </tbody>
+                    </Table>
                 </div>
-            <div className="box-container">
-            <div className="inner-container">
-                <div className="header">
-                <div className="btn-box">
-                    <button type="button" id="Admin"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל </button> ‏
-                    <button type="button" id="Director"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל מעבדה </button> ‏
-                    <button type="button" id="Guide" className="btn-user" onClick={this.checkUser.bind(this)}> מדריך </button> 
-                    <button type="button" id="Student" className="btn-user" onClick={this.checkUser.bind(this)}> סטודנט </button> 
-                </div>
-                </div>
-                <div className="box">
-
-                <div className="input-group">
-                    <div className="icon-input">
-                        <i className="fa fa-lock fa-border-icon" aria-hidden="true"></i>
-                        <input
-                        type="text"
-                        name="username"
-                        className="login-input"
-                        placeholder="שם משתמש"
-                        onChange={this.onUsernameChange.bind(this)}/>
+                <p/>
+                    {/* <div className="head">
+                        <h1 className="tytle">ברוכים הבאים לאתר המעבדות</h1>
+                        <img src={imgLogo} className="logo" />
                     </div>
-                    <small className="danger-error">{usernameErr ? usernameErr  : ""}</small>
-                </div>
+                
+                    <p/>    */}
+                <div className="box-container-l">
+                    <div className="inner-container">
+                    
+                        <div className="header">
+                            <div className="btn-box">
+                                <button type="button" id="Admin"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל </button> ‏
+                                <button type="button" id="Director"  className="btn-user" onClick={this.checkUser.bind(this)}> מנהל מעבדה </button> ‏
+                                <button type="button" id="Guide" className="btn-user" onClick={this.checkUser.bind(this)}> מדריך </button> 
+                                <button type="button" id="Student" className="btn-user" onClick={this.checkUser.bind(this)}> סטודנט </button> 
+                            </div>
+                        </div>
+                        <div className="box">
 
-                <div className="input-group">
-                    <div className="icon-input">
-                        <i className="fa fa-user fa-border-icon " aria-hidden="true"></i>
-                        <input
-                        type="password"
-                        name="password"
-                        className="login-input"
-                        placeholder="סיסמה"
-                        onChange={this.onPasswordChange.bind(this)}/>
+                            <div className="input-group">
+                                <div className="icon-input">
+                                    <i className="fa fa-lock fa-border-icon" aria-hidden="true"></i>
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        className="login-input"
+                                        placeholder="שם משתמש"
+                                        onChange={this.onUsernameChange.bind(this)}/>
+                                </div>
+                                <small className="danger-error">{usernameErr ? usernameErr  : ""}</small>
+                             </div>
+                            <div className="input-group">
+                               <div className="icon-input">
+                                    <i className="fa fa-user fa-border-icon " aria-hidden="true"></i>
+                                    <input
+                                    type="password"
+                                    name="password"
+                                    className="login-input"
+                                    placeholder="סיסמה"
+                                    onChange={this.onPasswordChange.bind(this)}/>
+                                </div>
+                                <small className="danger-error">{passwordErr ? passwordErr  : ""}</small>
+                                {this.state.password && <div className="password-state">
+                                <div className={"pwd pwd-weak " + (pwdWeak ? "show"  : "")}></div>
+                                <div className={"pwd pwd-medium " + (pwdMedium ? "show" : "")}></div>
+                                <div className={"pwd pwd-strong " + (pwdStrong ? "show" : "")}></div>
+                                </div>}
+                             </div> 
+                        <button
+                            type="button"
+                            className="login-btn"
+                            onClick={this.submitLogin.bind(this)}>כניסה
+                        </button>
+                        </div>
                     </div>
-                    <small className="danger-error">{passwordErr ? passwordErr  : ""}</small>
-                    {this.state.password && <div className="password-state">
-                    <div 
-                        className={"pwd pwd-weak " + (pwdWeak ? "show"  : "")}></div>
-                    <div
-                        className={"pwd pwd-medium " + (pwdMedium ? "show" : "")}></div>
-                    <div 
-                        className={"pwd pwd-strong " + (pwdStrong ? "show" : "")}></div>
-                    </div>}
-                </div> 
-                <button
-                    type="button"
-                    className="login-btn"
-                    onClick={this.submitLogin.bind(this)}>כניסה
-                </button>
                 </div>
-            </div>
-            </div>
             </div>  
         );
     }

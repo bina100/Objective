@@ -5,8 +5,10 @@ import axios from "axios";
 import './BtnStudent.css'
 import Questionnaire from './Questionnaire';
 import Select from '@material-ui/core/Select';
+import {Table} from 'reactstrap';
 import { FormControl } from "@material-ui/core";
-
+import Login from './Login';
+import Form from 'react-bootstrap/Form'
 
 export default class BtnStudent extends React.Component{
     constructor(props){
@@ -25,16 +27,28 @@ export default class BtnStudent extends React.Component{
             questions:null,
             show_questionnaire:true,
             fetched_guides:false,
-            selectedCourse:{name:"", code:null}
+            redirect:false
         }
 
         this.showCourses()
         this.fetchGuides()
         this.showQuestionnaire = this.showQuestionnaire.bind(this)
+        this.deleteToken = this.deleteToken.bind(this)
         // this.selectedGuide = this.selectedGuide.bind(this)
         // this.selectedCourse = this.selectedCourse.bind(this)
         // this.handleAnswerChange = this.handleAnswerChange.bind(this)      
     }
+
+    deleteToken(){
+        (async ()=> {
+            const response = await axios.post(
+                '/delete_token',
+                { username: this.user.username},
+                { headers: { 'Content-Type': 'application/json' } }
+              )
+        })();   
+    }
+
     get_user_details(){
         (async ()=> {
             const response = await axios.post(
@@ -42,6 +56,10 @@ export default class BtnStudent extends React.Component{
                 { username: this.user.username, password: this.user.password, type: 'students'},
                 { headers: { 'Content-Type': 'application/json' } }
               )
+              if(response.data == 'OOT'){
+                alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                this.setState({redirect:true})
+              }
               this.state.user_fname = response.data.FirstName
               this.state.user_lname = response.data.LastName
               this.setState({fetched: true})
@@ -57,11 +75,16 @@ export default class BtnStudent extends React.Component{
               )
               if(response.data === 'Failed')
                 alert("student not signed to any course")
+              else if(response.data == 'OOT'){
+                alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                this.setState({redirect:true})
+              }
               else{
                 var coursesNamesArr = response.data.courses_names.split(",")// storing couses names in array
+                var coursesCodesArr = JSON.parse(response.data.courses_id)
                 this.setState({courses_names: coursesNamesArr})
-                this.setState({courses_codes:JSON.parse(response.data.courses_id)
-                })//array of objects
+                this.setState({courses_codes:coursesCodesArr})//array of objects
+                this.setState({selectedCourse:{name:coursesNamesArr[0], code:coursesCodesArr[0].CourseCode, semester:coursesCodesArr[0].Semester}})
                 console.log("courses: ", this.state.courses_names, " codes: ", this.state.courses_codes)
             }
         })();
@@ -76,6 +99,10 @@ export default class BtnStudent extends React.Component{
               )
               if(response.data === 'Failed')
                 alert(response.data)
+              else if(response.data == 'OOT'){
+                  alert("האתר לא היה בשימוש הרבה זמן\n בבקשה התחבר שוב")
+                  this.setState({redirect:true})
+              }
               else{
                 this.setState({guides: response.data})// storing guides in array of objects
                 this.setState((currentState) => ({fetched_guides: !currentState.fetched_guides}))
@@ -95,12 +122,10 @@ export default class BtnStudent extends React.Component{
 
     showQuestionnaire(e){//shows the questionnaire for chosen course on screen
         this.setState({questions:<Questionnaire user_type={'students'} courseName={this.state.selectedCourse.name} courseCode={this.state.selectedCourse.code} courseSemester={this.state.selectedCourse.semester}></Questionnaire>})
-        // alert(this.state.show_courses_and_guides)
-        // alert(JSON.stringify(this.state.questions))
     }
 
     render(){
-        if(this.state.loggedIn === false){
+        if(this.state.loggedIn === false || this.state.redirect){
             return <Redirect to="/"/>
         }
 
@@ -109,9 +134,9 @@ export default class BtnStudent extends React.Component{
         var coursesList = null
         if(this.state.courses_names && this.state.courses_codes){
             coursesList = this.state.courses_names.map((course, index) => {
-            return(<option key={index+'course'} value={JSON.stringify({id:this.state.courses_codes[index], name:course})}>{course}</option>)
+            return(<option className="course-list-s" key={index+'course'} value={JSON.stringify({id:this.state.courses_codes[index], name:course})}>{course}</option>)
             })
-            coursesList.unshift(<option key="0" value=""></option>)
+            // coursesList.unshift(<option key="0" value=""></option>)
         }
 
         if(this.state.guides){
@@ -127,25 +152,46 @@ export default class BtnStudent extends React.Component{
 
         return(
             <div dir="rtl">
-                <div className="head-of-page">
+                <div className="head-of-page-s">
                     <h1>שלום {this.state.user_fname} {this.state.user_lname} </h1>
-                </div><p/>
+                </div>
+
                 {show_courses_and_guides && <div>
-                    <FormControl variant="outlined">
-                    <label>בחר מדריך מתאים</label>
-                    <Select native onChange={this.selectedGuide.bind(this)}>{guidesList}</Select></FormControl>
-                    
-                    <FormControl variant="outlined">
-                    <label>בחר קורס</label>
-                    <Select native onChange={this.selectedCourse}>{coursesList}</Select></FormControl>
-                    
-                    <p/><button onClick={this.showQuestionnaire.bind(this)}>הצג שאלון</button>
+                    <div className="space1"></div>
+                    <div className="box-container-student">
+                        <div className="inner-container-student">
+                    <Table dir="rtl" className="table-select-course">
+                        <tbody>
+                        {      
+                            <tr key={2}>
+                                <td key={1}><div className="select-course"> <label >בחר קורס</label> </div></td> 
+                                {/* <td key={2}><FormControl variant="outlined" className="course-list-s"> <Select className="course-list-s" native onChange={this.selectedCourse}>{coursesList}</Select></FormControl></td>  */}
+                                <td key={2}>
+                                    <Form.Group controlId="exampleForm.ControlSelect1" className="course-list-s" native onChange={this.selectedCourse}>
+                                        <Form.Control as="select" className="course-list-s">{coursesList}</Form.Control>
+                                    </Form.Group>
+                                </td>
+                            </tr>  
+                             
+                        }
+                        </tbody>
+                    </Table>
+                    </div>
+                    <div className="btn-show-questions">
+                        <button className="show-q-btn" onClick={this.showQuestionnaire.bind(this)}>הצג שאלון</button>
+                    </div>
+                    <p/>
+                    <p/>
+                    </div>
+                    <div className="space-log-out"></div>
                     </div>}
+                    
                 
                 {this.state.questions}
-                <div className="btn-sign-out">
+                <div className="btn-sign-out-s">
                     <i className="fa fa-sign-out" aria-hidden="true"></i>
-                    <Link to="/" color="gray">התנתק</Link><p/>
+                    <Link to='/' color="gray" onClick = {this.deleteToken.bind(this)}>התנתק</Link><p/>
+                    {/* <Link to='/' color="gray">התנתק</Link><p/> */}
                 </div>
             </div>
         )

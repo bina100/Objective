@@ -1,0 +1,21 @@
+.navbar {
+    background: #666666;
+    padding: 1%;
+    /* display: grid; */
+    /* margin: 2%; */
+    color:white !important;
+  }
+  
+
+.nav-link{
+    /*  background-color: #666666; */
+    border-radius: 5%;
+    font-size: medium;
+    padding: 1%;
+    color: white;
+    text-decoration: none;
+  }
+
+.Nav{
+      background-color: black;
+  }

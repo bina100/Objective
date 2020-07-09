@@ -37,49 +37,5 @@ class App extends React.Component{
         )
     }
 }
-const A =()=>{
-    return(
-        <div>
-            <h1>this component A page </h1>
-            <Link to="/b">B component</Link>
-        </div>
-    )
-}
-const B =()=>{
-    return(
-        <div className="App">
-            <h1>hello</h1>
-        </div>
-    )
-   
-}
-
 
 export default App;
-
-// import React from 'react';
-// import logo from './logo.svg';
-// import './App.css';
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href=""
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
-// export default App;

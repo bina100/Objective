@@ -1,0 +1,24 @@
+.q-arr{
+    margin: 15px;
+}
+.save-btn{
+    margin: 15px;
+    padding: 5px 30px;
+    border: 0;
+    font-size: 20px;
+    border-radius: 3px;
+    font-family: Oxygen, sans-serif;
+    background-color: rgba(15, 15, 15, 0.03);
+    margin-top: 20px;
+    border: 2px solid #808080;
+    transition: background-color 0.3s ease-out;
+    cursor: pointer; 
+    margin-bottom: 20px;
+    
+
+}
+.save-btn:hover,
+  .save-btn:focus {
+      background-color: #808080;
+      color: white;
+  } 

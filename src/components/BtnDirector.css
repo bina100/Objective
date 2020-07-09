@@ -1,0 +1,155 @@
+ @import "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";
+
+.head-of-page{
+    font-size: 20px;
+    padding: 1%;
+    /* background-color: #808080;
+    color: white; */
+    background-color: #f5f5f5;
+    color: #696969; 
+}
+.select-course-btn{
+    /* width: 50%; */
+    border-style: ridge;
+    border-color: #f82f2f;
+    margin-top: 2%;
+    margin-left: 25%;
+    margin-right: 25%;
+    /* color: #f5f5f5; */
+    background-color: #f5f5f5;
+    /* height: 30%; */
+    text-align: center;
+    border-radius: 3%;
+    box-shadow: 0px 0px 20px 0px rgba(80, 80, 80, 0.2);
+    transition: visibility 0.5s ease-out;
+    flex-direction: column;
+}
+.select-course-d{
+    display: flex;
+    flex-direction: column;
+    /* width: 50%; */
+    text-align: center;
+    padding-left: 10%;
+    padding-right: 10%;
+    /* background-color: #aca9a9; */
+    border-radius: 2%;
+    /* margin-top: 5px;
+    margin-bottom: 5px; */
+    transition: visibility 0.2s ease-out;
+}
+#title{
+    /* width: 100%; */
+    font-size: 100%;
+    font-weight: bold;
+    text-align: center;
+    /* padding-right: 2%; */
+    margin: 1%;
+}
+.list-course{
+    padding-right: 2%;
+}
+.course-btn{
+    border-radius: 3px;
+    padding: 2px 3px;
+    /* border: 0; */
+    /* margin: 3%; */
+    cursor: pointer;
+}
+.course-btn:hover,
+  .course-btn:focus {
+      background-color: #808080;
+      color: white;
+} 
+#input-lab-num{
+    margin-right: 2%;
+}
+#btn-show{
+    margin: 2%;
+    /* padding: 5px 30px; */
+    border: 0;
+    font-size: 100%;
+    border-radius: 3px;
+    /* color: #cc0f0f; */
+    font-family: Oxygen, sans-serif;
+    background-color: rgba(15, 15, 15, 0.03);
+    /* margin-top: 20px; */
+    border: 2px solid #808080;
+    transition: background-color 0.3s ease-out;
+    cursor: pointer; 
+    margin-bottom: 20px;
+    
+}
+#btn-show:hover,
+    #btn-show:focus {
+      background-color: #808080;
+      color: white;
+  } 
+#input-exceptional-events{
+    margin-right: 0.5%;
+    font-size: 15px;
+    padding-left: 20%;
+    padding-right: 0%;
+    border: 2px solid #808080;
+    width: 5%;
+}
+.btn-exceptional-events{
+    margin-right: 2%;
+    padding-left: 50%;
+    padding-right: 25%;
+    /* padding: 5px 30px; */
+    border: 0;
+    font-size: 15px;
+    border-radius: 3px;
+    font-family: Oxygen, sans-serif;
+    background-color: rgba(15, 15, 15, 0.03);
+    /* margin-top: 20px; */
+    border: 2px solid #808080;
+    transition: background-color 0.3s ease-out;
+    cursor: pointer; 
+    margin-bottom: 20px;
+}
+.btn-exceptional-events:hover,
+    .btn-exceptional-events:focus {
+      background-color: #808080;
+      color: white;
+  } 
+.btn-sign-out-d{
+    bottom: 5%;
+    font-size: 16px;
+    padding: 1%;
+}
+.fa-sign-out{
+    color: rgb(37, 124, 19);
+}
+.follow-up-table{
+    display:inline-block;
+    border:2px solid gray;
+}
+.bottom-left-corner{
+    margin-right: 70%;
+}
+#table{
+    margin: 2%;
+    text-align: center;
+    border-collapse: collapse;
+    border: 3px solid black;
+    width: 75%;
+}
+.follow-up-table{
+    margin-left: 20%;
+    margin-right: 20%;
+}
+#table th{
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #808080;
+}
+#table td, #table tr{
+  border:1px solid black;
+  padding:8px;
+  border-bottom:1px solid black;
+}
+.space-director{
+    margin-top: 3%;
+}
