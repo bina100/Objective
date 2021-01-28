@@ -1,3 +1,12 @@
+The project is a site designed to track student progress in lab classes
+The site is intended for 4 types of users:
+1. Administrator
+The administrator has the option of loading / deleting data from the system.
+2. Laboratory Director
+The laboratory director has the option of monitoring student progress by a comparison table between instructor and student scores in the laboratories.
+3.Instructor - will fill out a questionnaire for the students he accompanied in the lab
+4. Student - will fill out a questionnaire to monitor his performance in the laboratory
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
