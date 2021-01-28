@@ -1,15 +1,30 @@
-The project is a site designed to track student progress in lab classes
+## The project is a site designed to track student progress in lab classes
+
 The site is intended for 4 types of users:
-1. Administrator
-The administrator has the option of loading / deleting data from the system.
-2. Laboratory Director
-The laboratory director has the option of monitoring student progress by a comparison table between instructor and student scores in the laboratories.
-3.Instructor - will fill out a questionnaire for the students he accompanied in the lab
+
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/1%D7%90%D7%AA%D7%A8.png" width="50%"></img>
+
+1. Director - the director has the option of loading / deleting data from the system.
+
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/%D7%9E%D7%A0%D7%94%D7%9C.png" width="50%"></img>
+
+2. Laboratory Director- the laboratory director has the option of monitoring student progress by a comparison table between instructor and student scores in the laboratories.
+
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/%D7%9E%D7%A0%D7%94%D7%9C%20%D7%9E%D7%A2%D7%91%D7%93%D7%941.png" width="50%"></img>
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/%D7%9E%D7%A0%D7%94%D7%9C%20%D7%9E%D7%A2%D7%91%D7%93%D7%942.png" width="50%"></img>
+
+3. Instructor - will fill out a questionnaire for the students he accompanied in the lab.
+
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/%D7%9E%D7%93%D7%A8%D7%99%D7%9A.png" width="50%"></img>
+
 4. Student - will fill out a questionnaire to monitor his performance in the laboratory
+
+<img src="https://github.com/bina100/Objective/blob/e1a3ca6f8db7d564e2cd487e7c882b7696c6ca7f/images/%D7%A1%D7%98%D7%95%D7%93%D7%A0%D7%98.png" width="50%"></img>
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+### Available Scripts
 
 In the project directory, you can run:
 
